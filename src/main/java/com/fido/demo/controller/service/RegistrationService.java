@@ -1,24 +1,21 @@
 package com.fido.demo.controller.service;
 
+import com.fido.demo.controller.pojo.PubKeyCredParam;
+import com.fido.demo.controller.pojo.registration.RegRequest;
 import com.fido.demo.controller.pojo.registration.options.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.registration.options.RegOptions;
-import com.fido.demo.controller.pojo.registration.RegRequest;
-import com.fido.demo.controller.pojo.PubKeyCredParam;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.AuthenticatorEntity;
 import com.fido.demo.data.entity.CredentialEntity;
 import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.data.entity.UserEntity;
 import com.fido.demo.data.redis.RedisService;
-import com.fido.demo.data.repository.RPRepository;
-import com.fido.demo.data.repository.UserRepository;
 import com.fido.demo.data.repository.AuthenticatorRepository;
 import com.fido.demo.data.repository.CredentialRepository;
-import com.fido.demo.util.CredUtils;
-import com.fido.demo.util.CryptoUtil;
-import com.fido.demo.util.RpUtils;
+import com.fido.demo.data.repository.RPRepository;
+import com.fido.demo.data.repository.UserRepository;
+import com.fido.demo.util.*;
 import com.webauthn4j.data.RegistrationData;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -28,9 +25,15 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import static com.fido.demo.util.CommonConstants.SESSION_ID_DEFAULT_LENGTH;
+import static com.fido.demo.util.CommonConstants.CHALLENGE_DEFAULT_LENGTH;
+
 
 @Service("registrationService")
 public class RegistrationService {
+
+    @Autowired
+    Registrationutils registrationutils;
 
     @Autowired
     private RedisService redisService;
@@ -58,7 +61,7 @@ public class RegistrationService {
 
     public RegOptions getRegOptions(RegOptions request){
         //session_id : secure random string
-        String sessionId = cryptoUtil.generateSecureRandomString(32);
+        String sessionId = cryptoUtil.generateSecureRandomString(SESSION_ID_DEFAULT_LENGTH);
 
         RelyingPartyEntity rpEntity = rpRepository.findByRpId(request.getRp().getId());
         if(rpEntity == null){ //ToDo: Move all the validations to validators
@@ -69,7 +72,6 @@ public class RegistrationService {
         String userId = new String(userIdBytea, StandardCharsets.UTF_8);
         UserEntity userEntity = userRepository.findByUserId(userId);
 
-
         //ToDo: dont return the value configured for RP, match it with rp values or fail if config and incoming value mismatch
         AuthenticatorSelection authenticatorSelection = rpUtils.getAuthenticatorSelection(rpEntity.getConfigs());
         String attestation = rpUtils.getAttestation(rpEntity.getConfigs());
@@ -77,7 +79,7 @@ public class RegistrationService {
         List<PubKeyCredParam> pubKeyCredParam = rpUtils.getPubKeyCredParam(rpEntity.getConfigs());
         long timeout = rpUtils.getTimeout(rpEntity.getConfigs());
 
-        String challenge = cryptoUtil.generateSecureRandomString(32);// challenge
+        String challenge = cryptoUtil.generateSecureRandomString(CHALLENGE_DEFAULT_LENGTH);// challenge
         String challengeBase64 = Base64.getEncoder().encodeToString(challenge.getBytes());
         SessionState state = SessionState.builder() // ToDo : instead of saving the incoming data without validation, validate and persist
                 .sessionId(sessionId)
@@ -112,19 +114,13 @@ public class RegistrationService {
         SessionState session = (SessionState) redisService.find(request.getSessionId());
 
         // validate session and extract registrationData
-        RegistrationData registrationData = credUtils.validateAndGetRegData(request.getServerPublicKeyCredential(), session);
+        RegistrationData registrationData = registrationutils.validateAndGetRegData(request.getServerPublicKeyCredential(), session);
 
-        CredentialEntity credentialEntity = credUtils.getCredentialEntity(request, session, registrationData);
-        AuthenticatorEntity authenticatorEntity = credUtils.getAuthenticatorEntity(request, registrationData);
-
-        AuthenticatorEntity savedAuthnEntity = authenticatorRepository.save(authenticatorEntity);
-        credentialEntity.setAuthenticator(savedAuthnEntity);
-
-        // persist the credentials
-        CredentialEntity savedCreds = credRepository.save(credentialEntity);
+        // save the creds: ToDO: authenticator is saved twice if a new key/pair is generated address the unique ness
+        CredentialEntity savedCreds = registrationutils.saveCredentials(request, session, registrationData);
 
         // construct the response and return
-        RegRequest response = credUtils.getRegistrationResponse(savedCreds);
+        RegRequest response = registrationutils.getRegistrationResponse(savedCreds);
 
         return response;
     }

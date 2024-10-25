@@ -12,4 +12,5 @@ public interface CredentialRepository extends JpaRepository<CredentialEntity, Bi
     //List<CredentialEntity> findById(BigInteger id);
     List<CredentialEntity> findByUserId(BigInteger userId);
     List<CredentialEntity> findByRpIdAndUserId(BigInteger rpId, BigInteger userId);
+    List<CredentialEntity>  findByAuthenticatorCredentialId(byte[] authenticatorCredentialId);
 }

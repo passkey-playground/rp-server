@@ -55,10 +55,10 @@ public class RpUtils {
 
     public String getAttestation(List<RelyingPartyConfigEntity> rpConfigs){
         RelyingPartyConfigEntity attestation = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("attestation"))
+                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.ATTESTATION))
                                                     .findFirst().orElse(null);
         if(attestation == null){
-            return "none";
+            return CommonConstants.ATTESTATION_NONE_VALUE;
         }
         return attestation.getSettingValue();
     }
@@ -71,21 +71,21 @@ public class RpUtils {
         * require_resident_key
         * */
         RelyingPartyConfigEntity userVerificationConfig = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("require_user_verification"))
+                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.REQUIRE_USER_VERIFICATION))
                                                     .findFirst().orElse(null);
 
         RelyingPartyConfigEntity requireResidentKey = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("require_resident_key"))
+                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.REQUIRE_RESIDENT_KEY))
                                                     .findFirst().orElse(null);
 
         RelyingPartyConfigEntity authenticatorAttachment = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("authenticator_attachment"))
+                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.AUTHENTICATOR_ATTACHMENT))
                                                     .findFirst().orElse(null);
 
         AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection();
-        authenticatorSelection.setUserVerification(userVerificationConfig == null ? "preferred" : userVerificationConfig.getSettingValue()); // ToDo : move to constants
+        authenticatorSelection.setUserVerification(userVerificationConfig == null ? CommonConstants.USER_VERIFICATINO_PREFERRED_STRING : userVerificationConfig.getSettingValue()); // ToDo : move to constants
         authenticatorSelection.setRequireResidentKey(requireResidentKey == null ? false : Boolean.valueOf(requireResidentKey.getSettingValue()));
-        authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? "platform" : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
+        authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? CommonConstants.AUTHN_ATTACHMENT_PLATFORM_STRING : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
 
         return authenticatorSelection;
     }

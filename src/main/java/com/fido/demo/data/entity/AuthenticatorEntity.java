@@ -55,10 +55,9 @@ public class AuthenticatorEntity {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-
-    // @JoinColumn(name = "credential_id", nullable = false)
-    // @OneToMany(fetch = FetchType.LAZY)
-    // private CredentialEntity credential;
+//     @JoinColumn(name = "credential_id", nullable = false)
+//     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//     private List<CredentialEntity> credentials;
 
 
 }
