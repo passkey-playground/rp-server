@@ -1,5 +1,6 @@
 package com.fido.demo.util;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fido.demo.controller.pojo.authentication.AuthenticationOptionsResponse;
 import com.fido.demo.controller.pojo.registration.RegRequest;
 import com.fido.demo.controller.pojo.registration.RegResponse;
@@ -14,11 +15,22 @@ import com.webauthn4j.WebAuthnAuthenticationManager;
 import com.webauthn4j.WebAuthnRegistrationManager;
 import com.webauthn4j.authenticator.Authenticator;
 import com.webauthn4j.authenticator.AuthenticatorImpl;
+import com.webauthn4j.converter.AttestedCredentialDataConverter;
+import com.webauthn4j.converter.AuthenticatorDataConverter;
+import com.webauthn4j.converter.AuthenticatorTransportConverter;
+import com.webauthn4j.converter.CollectedClientDataConverter;
+import com.webauthn4j.converter.util.ObjectConverter;
+import com.webauthn4j.credential.CredentialRecord;
+import com.webauthn4j.credential.CredentialRecordImpl;
 import com.webauthn4j.data.*;
 import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData;
+import com.webauthn4j.data.attestation.authenticator.AuthenticatorData;
 import com.webauthn4j.data.attestation.statement.AttestationStatement;
+import com.webauthn4j.data.client.CollectedClientData;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
-import com.webauthn4j.validator.exception.ValidationException;
+
+import com.webauthn4j.util.Base64UrlUtil;
+import com.webauthn4j.verifier.exception.VerificationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
@@ -50,6 +62,13 @@ import org.apache.commons.lang3.tuple.Pair;
 @Component
 public class CredUtils {
 
+    public static final String ATTESTED_CREDENTIAL_DATA = "attested_credential_data";
+    public static final String ATTESTED_CREDENTIAL_DATA_KEY = "attested_credential_data";
+    public static final String ATTESTATION_STATEMENT_KEY = "attestation_statement";
+    public static final String RP_ID_HASH = "rp_id_hash";
+    public static final String AUTHENTICATOR_DATA = "AUTHENTICATOR_DATA";
+    private static final String COLLECTED_CLIENT_DATA = "COLLECTED_CLIENT_DATA";
+    public static final String AUTHENTICATOR_TRANSPORTS = "AUTHENTICATOR_TRANSPORTS";
     @Autowired
     JSONUtils jsonUtils;
 
@@ -128,14 +147,15 @@ public class CredUtils {
         }
 
         try{
-            webAuthnManager.validate(registrationData, registrationParameters);
+            webAuthnManager.verify(registrationData, registrationParameters);
         }
-        catch (ValidationException e){
+        catch (VerificationException e){
             // If you would like to handle WebAuthn data validation error, please catch ValidationException
             throw e;
         }
 
         return registrationData;
+
 
     }
 
@@ -192,7 +212,7 @@ public class CredUtils {
         byte[] authenticatorData = Base64.getUrlDecoder().decode(clientResponse.getAuthenticatorData()); /* set attestationObject */
         byte[] clientDataJSON = Base64.getDecoder().decode(clientResponse.getClientDataJSON()); /* set clientDataJSON */;
         String clientExtensionJSON = null;  /* set clientExtensionJSON */;
-        byte[] signature = clientResponse.getSignature().getBytes();
+        byte[] signature = Base64.getDecoder().decode(clientResponse.getSignature());
         //Set<String> transports = CollectionUtils.isEmpty(clientResponse.getTransports()) ? null : new HashSet<String>(clientResponse.getTransports()); /* set transports: ToDO : handle empty transports */;
 
         // Server properties
@@ -217,10 +237,11 @@ public class CredUtils {
         );
 
 
-        Authenticator authenticator = this.getWebAuthn4jAuthenticator(publicKeyCredential, sessionState);
+
+        CredentialRecord credentialRecord = this.getWebAuthn4jCredentialRecord(publicKeyCredential, sessionState);
         AuthenticationParameters authnParams = new AuthenticationParameters(
                 serverProperty,
-                authenticator,
+                credentialRecord,
                 allowCredentials,
                 userVerificationRequired,
                 userPresenceRequired
@@ -238,8 +259,8 @@ public class CredUtils {
 
         AuthenticationData authnData = null;
         try {
-               authnData = webAuthnManager.validate(authenticationData, authnParams);
-        } catch (ValidationException e) {
+               authnData = webAuthnManager.verify(authenticationData, authnParams);
+        } catch (VerificationException e) {
             // If you would like to handle WebAuthn data validation error, please catch ValidationException
             throw new RuntimeException("Failed to validate authentication data", e);
         }
@@ -247,7 +268,7 @@ public class CredUtils {
         return authnData;
 
     }
-    private Authenticator getWebAuthn4jAuthenticator(ServerPublicKeyCredential publicKeyCredential, SessionState sessionState){
+    private CredentialRecord getWebAuthn4jCredentialRecord(ServerPublicKeyCredential publicKeyCredential, SessionState sessionState){
         List<CredentialEntity> savedCred = credentialRepository.findByRpIdAndUserId(sessionState.getRpDbId(), sessionState.getUserDbId());
         // filter if the incoming cred id is present
         CredentialEntity credentialEntity = savedCred.stream().filter(item -> {
@@ -259,19 +280,48 @@ public class CredUtils {
             throw new ResourceNotFoundException("Credential not found");
         }
 
-        AttestationObject attestationObject = null;
 
-        CredentialConfigEntity config = credentialEntity.getConfigs().get(0);
-        String configString = config.getSettingValue();
-        attestationObject = (AttestationObject) jsonUtils.toObject(configString, AttestationObject.class);
+        ObjectConverter objectConverter = new ObjectConverter();
 
-        long signCount = attestationObject.getAuthenticatorData().getSignCount();
-        AttestedCredentialData attestedCredentialData =attestationObject.getAuthenticatorData().getAttestedCredentialData();
-        AttestationStatement statement = attestationObject.getAttestationStatement();
-        Authenticator authenticator = new AuthenticatorImpl(attestedCredentialData, statement, signCount);
-        return authenticator;
+        /*attestation object*/
+        CredentialConfigEntity attestationStatement = credentialEntity.getConfigs().stream().filter(item -> item.getSettingKey().compareTo(ATTESTATION_STATEMENT_KEY) == 0).findFirst().orElse(null);
+        String serializedEnvelope = attestationStatement.getSettingValue();
+        AttestationStatementEnvelope deserializedEnvelope = objectConverter.getCborConverter().readValue(Base64UrlUtil.decode(serializedEnvelope), AttestationStatementEnvelope.class);
+        AttestationStatement statement = deserializedEnvelope.getAttestationStatement();
 
+        CredentialConfigEntity authenticatorDataConfig = credentialEntity.getConfigs().stream().filter(item -> item.getSettingKey().compareTo(AUTHENTICATOR_DATA) == 0).findFirst().orElse(null);
+        String serializedAuthenticatorData = authenticatorDataConfig.getSettingValue();
+        AuthenticatorDataConverter authenticatorDataConverter = new AuthenticatorDataConverter(objectConverter);
+        AuthenticatorData authenticatorData = authenticatorDataConverter.convert(Base64UrlUtil.decode(serializedAuthenticatorData));
+
+        AttestationObject attestationObject = new AttestationObject(authenticatorData, statement);
+
+        /* collectedClientData */
+        CredentialConfigEntity collectedClientDataConfig = credentialEntity.getConfigs().stream().filter(item -> item.getSettingKey().compareTo(COLLECTED_CLIENT_DATA) == 0).findFirst().orElse(null);
+        String collectedClientDataString = collectedClientDataConfig.getSettingValue();
+        CollectedClientDataConverter converter = new CollectedClientDataConverter(objectConverter);
+        CollectedClientData collectedClientData = converter.convert(Base64UrlUtil.decode(collectedClientDataString));
+
+
+        CredentialConfigEntity transportsConfig = credentialEntity.getConfigs().stream().filter(item -> item.getSettingKey().compareTo(AUTHENTICATOR_TRANSPORTS) == 0).findFirst().orElse(null);
+        String transportsString = transportsConfig.getSettingValue();
+        String [] transporString = transportsString.split(",");
+        Set<AuthenticatorTransport> transports = new HashSet<>();
+        AuthenticatorTransportConverter transportConverter = new AuthenticatorTransportConverter();
+        for(String item : transporString){
+            AuthenticatorTransport t = transportConverter.convert(item);
+            transports.add(t);
+        }
+
+        CredentialRecord credentialRecord = new CredentialRecordImpl(
+                attestationObject,/*attestationObject*/
+                collectedClientData, /*collectedClientData*/
+                null,/*clientExtensions*/
+                transports /*transports*/
+                 );
+        return credentialRecord;
     }
+
 
     /* --------------------------------- Authentication Uitls (end)  --------------------------------*/
 
@@ -316,19 +366,67 @@ public class CredUtils {
         return  credentialEntity;
     }
 
+    //ToDo : currently only attestation_data is stored, function is too specific. refactor this ********** High Priority ************************
     private List<CredentialConfigEntity> getCredentialConfigs(SessionState session, RegistrationData registrationData){
 
-        AttestationObject attestationObject = registrationData.getAttestationObject();
-        AttestedCredentialData attestedCredentialData = attestationObject.getAuthenticatorData().getAttestedCredentialData();
-        String attestedCredJSON = jsonUtils.toJSONString(attestedCredentialData);
+        // store attestationObject and attestationStatement as strings
+        ObjectConverter objectConverter = new ObjectConverter();
 
-        CredentialConfigEntity configEntity = CredentialConfigEntity.builder()
-                .settingKey("attestation_data")
-                .settingValue(attestedCredJSON)
-                .build();
+        // attested credential data
+        AttestedCredentialDataConverter attestedCredentialDataConverter
+                = new AttestedCredentialDataConverter(objectConverter);
+        byte[] attestedCredData = attestedCredentialDataConverter.convert(registrationData.getAttestationObject().getAuthenticatorData().getAttestedCredentialData());
+        String attCredData = Base64UrlUtil.encodeToString(attestedCredData);
+
+        CredentialConfigEntity attestedCredDataConfig = this.buildCredConfigEntity(ATTESTED_CREDENTIAL_DATA, attCredData);
         List<CredentialConfigEntity> ret = new ArrayList<>();
-        ret.add(configEntity);
+        ret.add(attestedCredDataConfig);
+
+        //attestatoin statement
+        AttestationStatement attestationStatement = registrationData.getAttestationObject().getAttestationStatement();
+        if(attestationStatement != null){
+            AttestationStatementEnvelope envelope = new AttestationStatementEnvelope(attestationStatement);
+            byte[] serializedEnvelope = objectConverter.getCborConverter().writeValueAsBytes(envelope);
+            String statement = Base64UrlUtil.encodeToString(serializedEnvelope);
+
+            CredentialConfigEntity attestationStatementConfig = this.buildCredConfigEntity(ATTESTATION_STATEMENT_KEY, statement);
+            ret.add(attestationStatementConfig);
+        }
+
+        AuthenticatorDataConverter authenticatorDataConverter = new AuthenticatorDataConverter(objectConverter);
+        byte[] authenticatarDataBytea = authenticatorDataConverter.convert(registrationData.getAttestationObject().getAuthenticatorData());
+        String authenticatorData = Base64UrlUtil.encodeToString(authenticatarDataBytea);
+
+        CredentialConfigEntity authenticatorDataConfig = this.buildCredConfigEntity(AUTHENTICATOR_DATA, authenticatorData);
+        ret.add(authenticatorDataConfig);
+
+        byte[] collectedClientDataBytea = registrationData.getCollectedClientDataBytes();
+        if(collectedClientDataBytea != null && collectedClientDataBytea.length > 0){
+            String collectedClientData = Base64UrlUtil.encodeToString(collectedClientDataBytea);
+            CredentialConfigEntity collectedClientDataConfig = this.buildCredConfigEntity(COLLECTED_CLIENT_DATA, collectedClientData);
+            ret.add(collectedClientDataConfig);
+        }
+
+        String transports = registrationData.getTransports().stream().map(item -> item.getValue()).collect(Collectors.joining(","));
+        CredentialConfigEntity transportsConfig = this.buildCredConfigEntity(AUTHENTICATOR_TRANSPORTS, transports);
+        ret.add(transportsConfig);
+        // ToDO : handle clientextensions and transports
+
+        // rpIdhash
+        String rpIdHash = Base64UrlUtil.encodeToString(registrationData.getAttestationObject().getAuthenticatorData().getRpIdHash());
+        CredentialConfigEntity rpIdHashConfig = this.buildCredConfigEntity(RP_ID_HASH, rpIdHash);
+        ret.add(rpIdHashConfig);
+
         return ret;
+    }
+
+    private CredentialConfigEntity buildCredConfigEntity(String settingKey, String settingValue){
+        CredentialConfigEntity configEntity = CredentialConfigEntity.builder()
+                .settingKey(settingKey)
+                .settingValue(settingValue)
+                .build();
+
+        return configEntity;
     }
 
     private long getSignCount(RegistrationData registrationData) {

@@ -36,7 +36,7 @@ dependencies {
 	//implementation 'com.azure.spring:spring-cloud-azure-starter-data-redis-lettuce'
 	//implementation 'com.azure.spring:spring-boot-starter-data-redis'
 
-	implementation 'com.webauthn4j:webauthn4j-core:0.21.0.RELEASE'
+	implementation 'com.webauthn4j:webauthn4j-core:0.27.0.RELEASE'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

@@ -55,6 +55,8 @@ public class SessionUtils {
                 .user(user)
                 .challenge(challengeBase64)
                 .timeout(timeout)
+                .rpDbId(rpEntity.getId())
+                .userDbId(userEntity.getId())
                 .build();
 
         redisService.save(sessionId, state); // save the state for subsequent calls
