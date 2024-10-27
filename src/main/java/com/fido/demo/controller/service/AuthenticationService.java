@@ -19,6 +19,8 @@ import com.webauthn4j.data.AuthenticationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 @Service("authenticationService")
@@ -50,7 +52,9 @@ public class AuthenticationService {
         RelyingPartyEntity rpEntity = rpRepository.findByRpId(request.getRpId());
 
         // fetch user
-        UserEntity userEntity = userRepository.findByUserId(request.getUserId());
+        byte[] userIdBytea = Base64.getDecoder().decode(request.getUserId());
+        String userId = new String(userIdBytea, StandardCharsets.UTF_8);
+        UserEntity userEntity = userRepository.findByUserId(userId);
 
         // save session (challenge, user, rp, sessionId)
         SessionState state = sessionUtils.getAutnSession(request, rpEntity, userEntity);

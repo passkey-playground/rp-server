@@ -99,7 +99,7 @@ public class Registrationutils {
 
 
     // credentials are persisted, build "registration" response
-    public RegRequest getRegistrationResponse(CredentialEntity credEntity){
+    public RegRequest getRegistrationResponse(CredentialEntity credEntity, SessionState sessionState){
         // aaguid
         UUID aaguid = credEntity.getAuthenticator().getAaguid();
         // credentialId
@@ -117,7 +117,17 @@ public class Registrationutils {
         //residentKey present or not: ToDO : update this code
         boolean rk = true;
 
+        // set userId, rpId, origin, tokenBinding
+        String origin = sessionState.getRp().getOrigin();
+        String rpId = sessionState.getRp().getId() ;
+        String userId = sessionState.getUser().getId();
+
+        String sessionid = sessionState.getSessionId();
+
         RegRequest ret = RegRequest.builder()
+                .origin(origin)
+                .rpId(rpId)
+                .sessionId(sessionid)
                 .aaguid(aaguid.toString())
                 .credentialId(credentialId)
                 .attestationType(attestationType)

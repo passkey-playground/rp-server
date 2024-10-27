@@ -120,7 +120,7 @@ public class RegistrationService {
         CredentialEntity savedCreds = registrationutils.saveCredentials(request, session, registrationData);
 
         // construct the response and return
-        RegRequest response = registrationutils.getRegistrationResponse(savedCreds);
+        RegRequest response = registrationutils.getRegistrationResponse(savedCreds, session);
 
         return response;
     }

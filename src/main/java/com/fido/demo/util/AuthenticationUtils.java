@@ -122,9 +122,12 @@ public class AuthenticationUtils {
 
         AuthenticatorEntity authenticatorEntity = credentialEntity.getAuthenticator();
 
+        byte[] userIdBytea = sessionState.getUser().getId().getBytes();
+        String userId = Base64.getEncoder().encodeToString(userIdBytea);
+
         AuthnResponse authnResponse = AuthnResponse.builder()
                 .aaguid(authenticatorEntity.getAaguid().toString())
-                .userId(sessionState.getUser().getId())
+                .userId(userId)
                 .userPresent(authenticationData.getAuthenticatorData().isFlagUP())
                 .userVerified(authenticationData.getAuthenticatorData().isFlagUV())
                 .build();
