@@ -27,4 +27,15 @@ public class AuthenticationControllerImpl implements AuthenticationController {
         AuthnResponse response = authenticationService.authenticate(request);
         return ResponseEntity.ok(response);
     }
+
+    @Override
+    public ResponseEntity<AuthenticationOptionsResponse> getAssertionOptions(AuthenticationOptionsRequest request){
+        return getRegOptions(request);
+    };
+
+    @Override
+    public ResponseEntity<AuthnResponse> verifyAssertion(AuthnRequest request){
+        return createRegistration(request);
+    };
+
 }

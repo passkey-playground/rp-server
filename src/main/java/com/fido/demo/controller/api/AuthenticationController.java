@@ -20,4 +20,10 @@ public interface AuthenticationController {
 
     @PostMapping("/authentication")
     public ResponseEntity<AuthnResponse> createRegistration(@RequestBody AuthnRequest request);
+
+    @PostMapping("/assertion/options")
+    public ResponseEntity<AuthenticationOptionsResponse> getAssertionOptions(@RequestBody AuthenticationOptionsRequest request);
+
+    @PostMapping("/assertion")
+    public ResponseEntity<AuthnResponse> verifyAssertion(@RequestBody AuthnRequest request);
 }
