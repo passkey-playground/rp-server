@@ -19,4 +19,10 @@ public interface RegistrationController {
 
     @PostMapping("/registration")
     public ResponseEntity<RegRequest> createRegistration(@RequestBody RegRequest request);
+
+    @PostMapping(value = "/attestation/options", consumes = "application/json")
+    public ResponseEntity<RegOptions> getAttestationOptions(@RequestBody RegOptions request) ;
+
+    @PostMapping("/attestation")
+    public ResponseEntity<RegRequest> createAttestation(@RequestBody RegRequest request);
 }

@@ -28,4 +28,15 @@ public class RegistartionControllerImpl implements RegistrationController {
         RegRequest regResponse = registrationService.getReg(request);
         return ResponseEntity.ok(regResponse);
     }
+
+    @Override
+    public ResponseEntity<RegOptions> getAttestationOptions(RegOptions request) {
+        return getRegOptions(request);
+    }
+
+    @Override
+    public ResponseEntity<RegRequest> createAttestation(RegRequest request) {
+        return createRegistration(request);
+    }
+
 }
