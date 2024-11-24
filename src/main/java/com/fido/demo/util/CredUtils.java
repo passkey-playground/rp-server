@@ -1,8 +1,8 @@
 package com.fido.demo.util;
 
-import com.fido.demo.controller.pojo.authentication.AuthenticationOptionsResponse;
+import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.registration.RegRequest;
-import com.fido.demo.controller.pojo.registration.ServerPublicKeyCredential;
+import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.AuthenticatorEntity;
 import com.fido.demo.data.entity.CredentialConfigEntity;
@@ -46,7 +46,7 @@ public class CredUtils {
 
     /* --------------------------------- Authentication Uitls (start)  --------------------------------*/
     // ToDO : change the cred argument to list
-    public AuthenticationOptionsResponse getAuthnOptionsResponse(List<CredentialEntity> registeredCreds, SessionState state){
+    public AuthnOptions getAuthnOptionsResponse(List<CredentialEntity> registeredCreds, SessionState state){
 
         // challenge
         String challenge = state.getChallenge();
@@ -70,7 +70,7 @@ public class CredUtils {
             return entry;
         }).collect(Collectors.toList());
 
-        AuthenticationOptionsResponse response = AuthenticationOptionsResponse.builder()
+        AuthnOptions response = AuthnOptions.builder()
         .challenge(challenge)
         .timeout(timeout)
         .rpId(rpId)

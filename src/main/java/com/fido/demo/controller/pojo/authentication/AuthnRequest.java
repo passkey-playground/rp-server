@@ -1,7 +1,7 @@
 package com.fido.demo.controller.pojo.authentication;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fido.demo.controller.pojo.registration.ServerPublicKeyCredential;
+import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import lombok.Builder;
 import lombok.Data;
 

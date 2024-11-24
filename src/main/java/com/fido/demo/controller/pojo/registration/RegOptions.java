@@ -1,10 +1,11 @@
-package com.fido.demo.controller.pojo.registration.options;
+package com.fido.demo.controller.pojo.registration;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fido.demo.controller.pojo.PubKeyCredParam;
-import com.fido.demo.controller.pojo.registration.RP;
-import com.fido.demo.controller.pojo.registration.User;
+import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
+import com.fido.demo.controller.pojo.common.RP;
+import com.fido.demo.controller.pojo.common.User;
 import lombok.*;
 
 import java.util.List;

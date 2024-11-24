@@ -1,7 +1,6 @@
 package com.fido.demo.controller.service;
 
-import com.fido.demo.controller.pojo.authentication.AuthenticationOptionsRequest;
-import com.fido.demo.controller.pojo.authentication.AuthenticationOptionsResponse;
+import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import com.fido.demo.controller.pojo.authentication.AuthnResponse;
 import com.fido.demo.controller.service.pojo.SessionState;
@@ -41,12 +40,9 @@ public class AuthenticationService {
     CredUtils credUtils;
 
     @Autowired
-    private RedisService redisService;
-
-    @Autowired
     private AuthenticationUtils authenticationUtils;
 
-    public AuthenticationOptionsResponse getAuthNOptions(AuthenticationOptionsRequest request){
+    public AuthnOptions getAuthNOptions(AuthnOptions request){
 
         // fetch RP
         RelyingPartyEntity rpEntity = rpRepository.findByRpId(request.getRpId());
@@ -57,19 +53,19 @@ public class AuthenticationService {
         UserEntity userEntity = userRepository.findByUserId(userId);
 
         // save session (challenge, user, rp, sessionId)
-        SessionState state = sessionUtils.getAutnSession(request, rpEntity, userEntity);
+        SessionState state = sessionUtils.getAuthnSession(request, rpEntity, userEntity);
 
         // fetch credentials for the user
         List<CredentialEntity> registeredCreds = credentialRepository.findByRpIdAndUserId(rpEntity.getId(), userEntity.getId());
 
         // build the response & return
-        AuthenticationOptionsResponse response = credUtils.getAuthnOptionsResponse(registeredCreds, state);
+        AuthnOptions response = credUtils.getAuthnOptionsResponse(registeredCreds, state);
         return response;
     }
 
     public AuthnResponse authenticate(AuthnRequest request) {
         // fetch the session State: ToDo if session not found, return 404 or 400
-        SessionState session = (SessionState) redisService.find(request.getSessionId());
+        SessionState session = sessionUtils.retrieveSession(request);
 
         // validate the challenge & signature sent by client using the registered public-key
         AuthenticationData authenticationData = authenticationUtils.validateAndGetAuthnData(request.getServerPublicKeyCredential(), session);

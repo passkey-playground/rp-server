@@ -1,8 +1,7 @@
 package com.fido.demo.util;
 
-import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import com.fido.demo.controller.pojo.authentication.AuthnResponse;
-import com.fido.demo.controller.pojo.registration.ServerPublicKeyCredential;
+import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.AuthenticatorEntity;
 import com.fido.demo.data.entity.CredentialConfigEntity;
@@ -34,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.math.BigInteger;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;

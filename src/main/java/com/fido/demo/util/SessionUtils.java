@@ -2,6 +2,8 @@ package com.fido.demo.util;
 
 
 
+import com.fido.demo.controller.pojo.authentication.AuthnOptions;
+import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,11 +12,9 @@ import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.data.entity.UserEntity;
 import com.fido.demo.data.redis.RedisService;
 
-import com.fido.demo.controller.pojo.authentication.AuthenticationOptionsRequest;
-
 import java.util.Base64;
-import com.fido.demo.controller.pojo.registration.RP;
-import com.fido.demo.controller.pojo.registration.User;
+import com.fido.demo.controller.pojo.common.RP;
+import com.fido.demo.controller.pojo.common.User;
 
 
 @Component
@@ -29,8 +29,12 @@ public class SessionUtils {
     @Autowired
     RpUtils rpUtils;
 
+    public SessionState retrieveSession(AuthnRequest request){
+        SessionState session = (SessionState) redisService.find(request.getSessionId());
+        return session;
+    }
 
-    public SessionState getAutnSession(AuthenticationOptionsRequest request, RelyingPartyEntity rpEntity, UserEntity userEntity){
+    public SessionState getAuthnSession(AuthnOptions request, RelyingPartyEntity rpEntity, UserEntity userEntity){
         String sessionId = cryptoUtil.generateSecureRandomString(32);
 
         String challenge = cryptoUtil.generateSecureRandomString(32);

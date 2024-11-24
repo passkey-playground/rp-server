@@ -1,6 +1,6 @@
 package com.fido.demo.controller.api;
 
-import com.fido.demo.controller.pojo.registration.options.RegOptions;
+import com.fido.demo.controller.pojo.registration.RegOptions;
 import com.fido.demo.controller.pojo.registration.RegRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
+/**
+ * Controller for "registration"
+ * NOTE: though there are two flavors "/registration" and "/attestation",
+ * both serve same purpose and share implementation
+ */
 @RestController
 @RequestMapping("/fido2")
 public interface RegistrationController {

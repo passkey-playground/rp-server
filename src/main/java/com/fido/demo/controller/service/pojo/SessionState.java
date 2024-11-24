@@ -2,9 +2,9 @@ package com.fido.demo.controller.service.pojo;
 
 import java.math.BigInteger;
 
-import com.fido.demo.controller.pojo.registration.RP;
-import com.fido.demo.controller.pojo.registration.options.AuthenticatorSelection;
-import com.fido.demo.controller.pojo.registration.User;
+import com.fido.demo.controller.pojo.common.RP;
+import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
+import com.fido.demo.controller.pojo.common.User;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;

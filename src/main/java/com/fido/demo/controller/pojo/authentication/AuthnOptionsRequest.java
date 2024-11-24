@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class AuthenticationOptionsRequest {
+public class AuthnOptionsRequest {
 
     @JsonProperty("rpId")
     private String rpId;

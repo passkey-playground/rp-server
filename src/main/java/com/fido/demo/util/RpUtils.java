@@ -1,6 +1,6 @@
 package com.fido.demo.util;
 
-import com.fido.demo.controller.pojo.registration.options.AuthenticatorSelection;
+import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.PubKeyCredParam;
 import com.fido.demo.data.entity.RelyingPartyConfigEntity;
 import org.springframework.stereotype.Component;

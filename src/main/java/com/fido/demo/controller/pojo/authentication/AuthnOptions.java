@@ -6,11 +6,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 @Data
 @Builder
-public class AuthenticationOptionsResponse {
+public class AuthnOptions {
+
+    // <----------------------- Request field(start) ------------------->
+    @JsonProperty("rpId")
+    private String rpId;
+
+    @JsonProperty("userVerification")
+    String userVerification;
+
+    @JsonProperty("userId")
+    private String userId;
+    // <-----------------------Request fields(end)----------------------->
 
     @JsonProperty("challenge")
     private String challenge;
@@ -18,18 +27,12 @@ public class AuthenticationOptionsResponse {
     @JsonProperty("timeout")
     private long timeout;
 
-    @JsonProperty("rpId")
-    private String rpId;
-
-    @JsonProperty("userVerification")
-    String userVerification;
 
     @JsonProperty("sessionId")
     private String sessionId;
 
     @JsonProperty("allowCredentials")
     private List<Map<String,String>> allowedCreds;
-
 
 }
 

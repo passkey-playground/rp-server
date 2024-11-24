@@ -1,4 +1,4 @@
-package com.fido.demo.controller.pojo.registration.options;
+package com.fido.demo.controller.pojo.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

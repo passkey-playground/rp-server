@@ -1,8 +1,8 @@
 package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.registration.RegRequest;
-import com.fido.demo.controller.pojo.registration.ServerPublicKeyCredential;
-import com.fido.demo.controller.pojo.registration.options.AuthenticatorSelection;
+import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
+import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.AuthenticatorEntity;
 import com.fido.demo.data.entity.CredentialEntity;

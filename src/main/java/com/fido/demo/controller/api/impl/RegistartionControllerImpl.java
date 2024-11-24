@@ -1,9 +1,8 @@
 package com.fido.demo.controller.api.impl;
 
 import com.fido.demo.controller.api.RegistrationController;
-import com.fido.demo.controller.pojo.registration.options.RegOptions;
+import com.fido.demo.controller.pojo.registration.RegOptions;
 import com.fido.demo.controller.pojo.registration.RegRequest;
-import com.fido.demo.controller.pojo.registration.RegResponse;
 import com.fido.demo.controller.service.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
