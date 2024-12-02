@@ -13,4 +13,5 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<UserEntity, BigInteger>{
     //UserEntity findById(BigInteger id);
     UserEntity findByUserId(String userId);
+    UserEntity findByUsername(String username);
 }

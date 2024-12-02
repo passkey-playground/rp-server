@@ -4,10 +4,9 @@ import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import com.fido.demo.controller.pojo.authentication.AuthnResponse;
 import com.fido.demo.controller.service.pojo.SessionState;
-import com.fido.demo.data.entity.CredentialEntity;
+import com.fido.demo.data.entity.CredentialEntityOld;
 import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.data.entity.UserEntity;
-import com.fido.demo.data.redis.RedisService;
 import com.fido.demo.data.repository.CredentialRepository;
 import com.fido.demo.data.repository.RPRepository;
 import com.fido.demo.data.repository.UserRepository;
@@ -43,36 +42,38 @@ public class AuthenticationService {
     private AuthenticationUtils authenticationUtils;
 
     public AuthnOptions getAuthNOptions(AuthnOptions request){
+        return null;
 
-        // fetch RP
-        RelyingPartyEntity rpEntity = rpRepository.findByRpId(request.getRpId());
-
-        // fetch user
-        byte[] userIdBytea = Base64.getDecoder().decode(request.getUserId());
-        String userId = new String(userIdBytea, StandardCharsets.UTF_8);
-        UserEntity userEntity = userRepository.findByUserId(userId);
-
-        // save session (challenge, user, rp, sessionId)
-        SessionState state = sessionUtils.getAuthnSession(request, rpEntity, userEntity);
-
-        // fetch credentials for the user
-        List<CredentialEntity> registeredCreds = credentialRepository.findByRpIdAndUserId(rpEntity.getId(), userEntity.getId());
-
-        // build the response & return
-        AuthnOptions response = credUtils.getAuthnOptionsResponse(registeredCreds, state);
-        return response;
+//        // fetch RP
+//        RelyingPartyEntity rpEntity = rpRepository.findByRpId(request.getRpId());
+//
+//        // fetch user
+//        byte[] userIdBytea = Base64.getDecoder().decode(request.getUserId());
+//        String userId = new String(userIdBytea, StandardCharsets.UTF_8);
+//        UserEntity userEntity = userRepository.findByUserId(userId);
+//
+//        // save session (challenge, user, rp, sessionId)
+//        SessionState state = sessionUtils.getAuthnSession(request, rpEntity, userEntity);
+//
+//        // fetch credentials for the user
+//        List<CredentialEntityOld> registeredCreds = credentialRepository.findByRpIdAndUserId(rpEntity.getId(), userEntity.getId());
+//
+//        // build the response & return
+//        AuthnOptions response = credUtils.getAuthnOptionsResponse(registeredCreds, state);
+//        return response;
     }
 
     public AuthnResponse authenticate(AuthnRequest request) {
-        // fetch the session State: ToDo if session not found, return 404 or 400
-        SessionState session = sessionUtils.retrieveSession(request);
-
-        // validate the challenge & signature sent by client using the registered public-key
-        AuthenticationData authenticationData = authenticationUtils.validateAndGetAuthnData(request.getServerPublicKeyCredential(), session);
-
-        // persist the credential with updates to sign_count and build the response object
-        AuthnResponse authnResponse = authenticationUtils.updateCredentials(request.getServerPublicKeyCredential(), authenticationData, session);
-
-        return authnResponse;
+        return null;
+//        // fetch the session State: ToDo if session not found, return 404 or 400
+//        SessionState session = sessionUtils.retrieveSession(request);
+//
+//        // validate the challenge & signature sent by client using the registered public-key
+//        AuthenticationData authenticationData = authenticationUtils.validateAndGetAuthnData(request.getServerPublicKeyCredential(), session);
+//
+//        // persist the credential with updates to sign_count and build the response object
+//        AuthnResponse authnResponse = authenticationUtils.updateCredentials(request.getServerPublicKeyCredential(), authenticationData, session);
+//
+//        return authnResponse;
     }
 }

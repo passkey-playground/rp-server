@@ -57,7 +57,7 @@ public class AuthenticatorEntity {
 
 //     @JoinColumn(name = "credential_id", nullable = false)
 //     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//     private List<CredentialEntity> credentials;
+//     private List<CredentialEntityOld> credentials;
 
 
 }

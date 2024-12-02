@@ -7,11 +7,16 @@ import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.AuthenticatorEntity;
 import com.fido.demo.data.entity.CredentialConfigEntity;
 import com.fido.demo.data.entity.CredentialEntity;
+import com.fido.demo.data.entity.CredentialEntityOld;
 import com.fido.demo.data.repository.CredentialRepository;
+import com.fido.demo.util.serde.WebAuthn4JSerDe;
 import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.AuthenticatorDataConverter;
 import com.webauthn4j.converter.util.ObjectConverter;
+import com.webauthn4j.credential.CredentialRecordImpl;
+import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.RegistrationData;
+import com.webauthn4j.data.attestation.AttestationObject;
 import com.webauthn4j.data.attestation.authenticator.AAGUID;
 import com.webauthn4j.data.attestation.statement.AttestationStatement;
 import com.webauthn4j.util.Base64UrlUtil;
@@ -20,10 +25,7 @@ import org.springframework.stereotype.Component;
 
 import static com.fido.demo.util.CommonConstants.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -34,6 +36,9 @@ public class CredUtils {
 
     @Autowired
     CredentialRepository credentialRepository;
+
+    @Autowired
+    WebAuthn4JSerDe webAuthn4JSerDe;
 
 
     /* --------------------------------- Registration Uitls (start)--------------------------------*/
@@ -46,7 +51,7 @@ public class CredUtils {
 
     /* --------------------------------- Authentication Uitls (start)  --------------------------------*/
     // ToDO : change the cred argument to list
-    public AuthnOptions getAuthnOptionsResponse(List<CredentialEntity> registeredCreds, SessionState state){
+    public AuthnOptions getAuthnOptionsResponse(List<CredentialEntityOld> registeredCreds, SessionState state){
 
         // challenge
         String challenge = state.getChallenge();
@@ -86,11 +91,59 @@ public class CredUtils {
 
     /* --------------------------------- Authentication Uitls (end)  --------------------------------*/
 
-
-
     /* --------------------------------- Common Uitls (start) --------------------------------*/
 
-    public CredentialEntity getCredentialEntity(RegRequest request, SessionState session, RegistrationData registrationData) {
+    //for now serialize everything to bytea and persist
+    public CredentialEntity persistCredRecord(CredentialRecordImpl credentialRecord,
+                                              RegistrationData registrationData,
+                                              String credentialId,
+                                              String credentialRawId){
+
+        /**
+         * credential record has 4 main objects
+         * 1) attestationobject
+         * 2) collectedClientData
+         * 3) clientExtensions
+         * 4) transports
+         */
+
+        /* Attestation Object 1) authenticator data & 2) attestation statement */
+        AttestationObject attestationObject = registrationData.getAttestationObject();
+        byte[] authenticatorDataBytea = webAuthn4JSerDe.serialize(attestationObject.getAuthenticatorData());
+        byte[] attStmtBytea = webAuthn4JSerDe.serialize(credentialRecord.getAttestationStatement());
+
+        /* collectedClientData */
+        byte[] clientData = webAuthn4JSerDe.serialize(credentialRecord.getClientData());
+
+
+        /* client extensions */
+        //eg: webAuthn4JSerDe.serialize(credentialRecord.getClientExtensions())
+
+        /* transports */
+        Set<AuthenticatorTransport> transportSet = credentialRecord.getTransports();
+        String transports = webAuthn4JSerDe.serialize(transportSet);
+
+        /**
+         * 3 columns
+         * - authenticator_data
+         * - attestation_statement
+         * - client extensions
+         * - collected clientData
+         * - transports
+         */
+        CredentialEntity credentialEntity = CredentialEntity.builder()
+                .externalId(credentialId)
+                .externalIdRaw(credentialRawId)
+                .authenticatorData(authenticatorDataBytea)
+                .attestationStatement(attStmtBytea)
+                .collectedClientData(clientData)
+                .transports(transports)
+                .build();
+
+        CredentialEntity ret = credentialRepository.save(credentialEntity);
+        return ret;
+    }
+    public CredentialEntityOld getCredentialEntity(RegRequest request, SessionState session, RegistrationData registrationData) {
         // id, user_id, rp_id, public_key(UUID), sign_count, transports, attestation_format, authenticator_credential_id
         //id is auto generated
 
@@ -114,7 +167,7 @@ public class CredUtils {
 
         List<CredentialConfigEntity> configs = this.getCredentialConfigs(session, registrationData);
 
-        CredentialEntity credentialEntity = CredentialEntity.builder()
+        CredentialEntityOld credentialEntity = CredentialEntityOld.builder()
                 .rpId(rpId)                                                      /* Column : rp_id */
                 .userId(userId)                                                  /* Column : user_id */
                 .publicKey(publicKey)                                            /* Column : public_key */

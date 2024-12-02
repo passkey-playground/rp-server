@@ -17,6 +17,8 @@ public class SessionState {
 
     private RP rp;
 
+    private String rpId;
+
     private User user;
 
     private String challenge;

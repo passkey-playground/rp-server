@@ -15,9 +15,6 @@ public class RP {
     @JsonProperty("name")
     public String name;
 
-    @JsonProperty("icon")
-    public String icon;
-
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("id")
     public String id;

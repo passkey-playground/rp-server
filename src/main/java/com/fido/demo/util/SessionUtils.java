@@ -35,9 +35,9 @@ public class SessionUtils {
     }
 
     public SessionState getAuthnSession(AuthnOptions request, RelyingPartyEntity rpEntity, UserEntity userEntity){
-        String sessionId = cryptoUtil.generateSecureRandomString(32);
+        String sessionId = cryptoUtil.getRandomBase64String(32);
 
-        String challenge = cryptoUtil.generateSecureRandomString(32);
+        String challenge = cryptoUtil.getRandomBase64String(32);
         String challengeBase64 = Base64.getEncoder().encodeToString(challenge.getBytes());
 
         // ToDO: build RP from rpEntity not from incoming request

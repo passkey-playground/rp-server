@@ -2,12 +2,16 @@ package com.fido.demo.util;
 
 public class CommonConstants {
 
+
+
     // Default values for certain fields
     public static final String ATTESTATION_NONE_VALUE = "none";
     public static final String USER_VERIFICATINO_PREFERRED_STRING = "preferred";
     public static final String AUTHN_ATTACHMENT_PLATFORM_STRING = "platform";
     public static final int CHALLENGE_DEFAULT_LENGTH = 32;
     public static final int SESSION_ID_DEFAULT_LENGTH = 32;
+    //public static final String DEFAULT_RP_ID="pp-signal-sdk-demo.netlify.app";
+    public static final String DEFAULT_RP_ID="www.sowmya.com";
 
 
     public static final String ATTESTED_CREDENTIAL_DATA = "attested_credential_data";

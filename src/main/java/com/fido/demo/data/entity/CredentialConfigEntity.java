@@ -10,7 +10,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigInteger;
-import java.sql.Time;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,7 +28,7 @@ public class CredentialConfigEntity {
 
     @JoinColumn(name = "credential_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    private CredentialEntity credentialEntity;
+    private CredentialEntityOld credentialEntity;
 
     @Column(name = "setting_key")
     private String settingKey;

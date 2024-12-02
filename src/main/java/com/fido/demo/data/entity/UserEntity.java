@@ -22,6 +22,8 @@ public class UserEntity {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cred_sequence_generator")
+    @SequenceGenerator(name = "cred_sequence_generator", sequenceName = "users_id_seq", allocationSize = 1)
     private BigInteger id;
 
     @Column(name = "external_id", unique = true)
@@ -29,9 +31,6 @@ public class UserEntity {
 
     @Column(name = "username")
     private String username;
-
-    @Column(name = "email")
-    private String email;
 
     @Column(name = "display_name")
     private String displayName;

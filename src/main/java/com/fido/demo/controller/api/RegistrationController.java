@@ -1,7 +1,9 @@
 package com.fido.demo.controller.api;
 
 import com.fido.demo.controller.pojo.registration.RegOptions;
+import com.fido.demo.controller.pojo.registration.RegOptionsRequest;
 import com.fido.demo.controller.pojo.registration.RegRequest;
+import com.fido.demo.controller.pojo.registration.RegistrationRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,14 +22,30 @@ public interface RegistrationController {
 
     // Get challenge options for registration
     @PostMapping(value = "/registration/options", consumes = "application/json")
-    public ResponseEntity<RegOptions> getRegOptions(@RequestBody RegOptions request) ;
+    ResponseEntity<RegOptions> registrationOptions(@RequestBody RegOptionsRequest request) ;
 
     @PostMapping("/registration")
-    public ResponseEntity<RegRequest> createRegistration(@RequestBody RegRequest request);
+    ResponseEntity<RegRequest> registration(@RequestBody RegistrationRequest request);
 
     @PostMapping(value = "/attestation/options", consumes = "application/json")
-    public ResponseEntity<RegOptions> getAttestationOptions(@RequestBody RegOptions request) ;
+    ResponseEntity<RegOptions> attestationOptions(@RequestBody RegOptionsRequest request) ;
 
-    @PostMapping("/attestation")
-    public ResponseEntity<RegRequest> createAttestation(@RequestBody RegRequest request);
+    @PostMapping("/attestation/result")
+    ResponseEntity<RegRequest> attestation(@RequestBody RegistrationRequest request);
+
+
+    /* old interfaces
+
+    @PostMapping(value = "/registration/options", consumes = "application/json")
+    ResponseEntity<RegOptions> getRegOptions(@RequestBody RegOptions request) ;
+
+    @PostMapping(value = "/attestation/options", consumes = "application/json")
+    ResponseEntity<RegOptions> getAttestationOptions(@RequestBody RegOptions request) ;
+
+    @PostMapping("/attestation/result")
+    ResponseEntity<RegRequest> createAttestation(@RequestBody RegRequest request);
+
+    */
+
+
 }

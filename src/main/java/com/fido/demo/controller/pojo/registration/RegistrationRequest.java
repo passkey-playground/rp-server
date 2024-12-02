@@ -12,36 +12,24 @@ import java.util.List;
  */
 @Data
 @Builder
-public class RegRequest {
+public class RegistrationRequest {
 
     /*----------------- Request fields (start) -----------------------------*/
-    @JsonProperty("serverPublicKeyCredential")
-    private ServerPublicKeyCredential serverPublicKeyCredential;
+    @JsonProperty("id")
+    public String id;
 
-    @JsonProperty("sessionId")
-    private String sessionId;
+    @JsonProperty("rawId")
+    public String rawId;
 
-    @JsonProperty("origin")
-    private String origin;
+    @JsonProperty("type")
+    public String type;
 
-    @JsonProperty("rpId")
-    private String rpId;
+    @JsonProperty("response")
+    public ServerPublicKeyCredential.Response response;
 
-    @JsonProperty("tokenBinding")
-    private String tokenBinding;
     /*----------------- Request fields (end) -----------------------------*/
 
     /*----------------- Response fields (start) -----------------------------*/
-
-    @JsonProperty(value = "status")
-    @Builder.Default
-    private String status = "ok";
-
-    @JsonProperty(value = "errorMessage")
-    @Builder.Default
-    private String errorMessage = "";
-
-    // ----------- below fields are not specified in FIDO spec
     @JsonProperty("aaguid")
     private String aaguid;
 

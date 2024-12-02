@@ -5,21 +5,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "CREDENTIALS2")
+@Table(name = "CREDENTIALS")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CredentialEntity {
+public class CredentialEntityOld {
 
     @Id
     @Column(name = "id")
@@ -33,27 +33,21 @@ public class CredentialEntity {
     @Column(name = "rp_id")
     private BigInteger rpId;
 
-    @Column(name = "external_id")
-    private String externalId;
+    @Column(name = "authenticator_credential_id")
+    private byte[] authenticatorCredentialId;
 
-    @Column(name = "external_id_raw")
-    private String externalIdRaw;
+    @Column(name = "public_key")
+    private byte[] publicKey;
 
+    @Column(name = "sign_count")
+    private long sign_count;
 
-    @Column(name = "authenticator_data")
-    private byte[] authenticatorData;
+    @Column(name = "attestation_format")
+    private String attestationFormat;
 
-    @Column(name = "attestation_statement")
-    private byte[] attestationStatement;
-
-    @Column(name = "client_extensions")
-    private byte[] clientExtensions;
-
-    @Column(name = "collected_client_data")
-    private byte[] collectedClientData;
-
-    @Column(name = "transports")
-    private String transports;
+    @JoinColumn(name = "credential_id")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<CredentialConfigEntity> configs;
 
     @Column(name = "created_at")
     @CreationTimestamp
@@ -62,5 +56,9 @@ public class CredentialEntity {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @JoinColumn(name = "authenticator_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private AuthenticatorEntity authenticator;
 
 }

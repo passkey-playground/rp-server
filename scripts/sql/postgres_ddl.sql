@@ -61,7 +61,7 @@ CREATE TABLE authenticators (
 );
 
 
--- Table: credentials
+-- Table: credentials (not in use)
 CREATE TABLE CREDENTIALS (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGSERIAL REFERENCES USERS(id) ON DELETE CASCADE,
@@ -75,6 +75,23 @@ CREATE TABLE CREDENTIALS (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Table Credentials (currently this is the table used)
+CREATE TABLE CREDENTIALS2 (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES USERS(id) ON DELETE CASCADE,
+    rp_id INTEGER REFERENCES relying_parties(id) ON DELETE CASCADE,
+    external_id VARCHAR(255) NOT NULL UNIQUE ,
+    external_id_raw VARCHAR(255) NOT NULL,
+    authenticator_data BYTEA NOT NULL,
+    attestation_statement BYTEA,
+    client_extensions BYTEA,
+    collected_client_data BYTEA,
+    transports VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 
 -- Indexes (one multicolumn index on rp_id & user_id) and single column on user_id
 CREATE INDEX idx_credentials_rp_id ON credentials(rp_id, user_id);

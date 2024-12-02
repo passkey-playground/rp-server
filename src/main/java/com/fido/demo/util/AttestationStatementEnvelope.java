@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.webauthn4j.data.attestation.statement.AttestationStatement;
 
-class AttestationStatementEnvelope{
+public class AttestationStatementEnvelope{
 
     @JsonProperty("attStmt")
     @JsonTypeInfo(

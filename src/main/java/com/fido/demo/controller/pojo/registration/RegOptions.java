@@ -10,9 +10,18 @@ import lombok.*;
 
 import java.util.List;
 
+@Deprecated // NON conformant for now
 @Data
 @Builder
 public class RegOptions {
+
+    @JsonProperty(value = "status")
+    @Builder.Default
+    private String status = "ok";
+
+    @JsonProperty(value = "errorMessage")
+    @Builder.Default
+    private String errorMessage = "";
 
     @JsonProperty("rp")
     private RP rp;

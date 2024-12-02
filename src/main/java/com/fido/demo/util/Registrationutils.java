@@ -1,23 +1,27 @@
 package com.fido.demo.util;
 
+import com.fido.demo.controller.pojo.common.User;
 import com.fido.demo.controller.pojo.registration.RegRequest;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.service.pojo.SessionState;
-import com.fido.demo.data.entity.AuthenticatorEntity;
-import com.fido.demo.data.entity.CredentialEntity;
-import com.fido.demo.data.entity.RelyingPartyConfigEntity;
+import com.fido.demo.data.entity.*;
+import com.fido.demo.data.redis.RedisService;
 import com.fido.demo.data.repository.AuthenticatorRepository;
 import com.fido.demo.data.repository.CredentialRepository;
+import com.fido.demo.data.repository.UserRepository;
 import com.webauthn4j.WebAuthnRegistrationManager;
 import com.webauthn4j.converter.exception.DataConversionException;
+import com.webauthn4j.credential.CredentialRecordImpl;
 import com.webauthn4j.data.RegistrationData;
 import com.webauthn4j.data.RegistrationParameters;
 import com.webauthn4j.data.RegistrationRequest;
+import com.webauthn4j.data.client.CollectedClientData;
 import com.webauthn4j.data.client.Origin;
 import com.webauthn4j.data.client.challenge.Challenge;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
+import com.webauthn4j.util.HexUtil;
 import com.webauthn4j.verifier.exception.VerificationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,6 +40,94 @@ public class Registrationutils {
 
     @Autowired
     CredUtils credUtils;
+
+    @Autowired
+    Base64Utils base64Utils;
+    @Autowired
+    private RedisService redisService;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    JSONUtils jsonUtils;
+
+    public RegistrationData parseRegistrationData(String attestationObject, String clientDataJSON){
+        WebAuthnRegistrationManager webAuthnManager = WebAuthnRegistrationManager.createNonStrictWebAuthnRegistrationManager();
+
+        //byte[] attestationBytea = base64Utils.decodeAsBytea(attestationObject);
+        byte[] attestationBytea = base64Utils.decodeURLAsBytes(attestationObject);
+        byte[] clientDataBytea = base64Utils.decodeURLAsBytes(clientDataJSON);
+
+        String clientExtensionJSON = null;  /* set clientExtensionJSON */;
+        Set<String> transports = new HashSet<String>(); /* ToDo: set transports from response*/;
+
+
+        RegistrationRequest registrationRequest = new RegistrationRequest(attestationBytea, clientDataBytea,
+                clientExtensionJSON, transports);
+
+        RegistrationData registrationData = null;
+        try{
+            registrationData = webAuthnManager.parse(registrationRequest);
+        }
+        catch (DataConversionException e){
+            throw new RuntimeException("Exception while parsing registration data", e);
+        }
+
+        return  registrationData;
+    }
+
+    public CredentialRecordImpl verifyRegistrationData(RegistrationData registrationData, String clientDataJSON){
+
+
+        CollectedClientData clientData = registrationData.getCollectedClientData();
+        if(Objects.isNull(clientData)){
+            throw new RuntimeException("ClientData is null/empty");
+        }
+
+        // retrieve the session
+        String challenge = new String(Base64.getUrlEncoder().withoutPadding().encode(registrationData.getCollectedClientData().getChallenge().getValue()));
+        SessionState sessionState = (SessionState) redisService.find(challenge);
+
+        // validate or verify the data
+        if(Objects.isNull(sessionState)){
+            throw new RuntimeException("Invalid Challenge");
+        }
+
+        Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
+        String rpId = sessionState.getRp().getId() /* set rpId */;
+        Challenge originalChallenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */;
+        byte[] tokenBindingId = null /* set tokenBindingId */;
+        ServerProperty serverProperty = new ServerProperty(origin, rpId, originalChallenge, tokenBindingId);
+
+        // expectations
+        boolean userVerificationRequired = false;
+        boolean userPresenceRequired = true;
+
+        RegistrationParameters registrationParameters = new RegistrationParameters(
+                serverProperty,
+                userVerificationRequired,
+                userPresenceRequired);
+
+        WebAuthnRegistrationManager webAuthnManager =
+                WebAuthnRegistrationManager.createNonStrictWebAuthnRegistrationManager();
+        RegistrationData ret = null;
+        try {
+            ret = webAuthnManager.verify(registrationData, registrationParameters);
+        }
+        catch (VerificationException e){
+            // If you would like to handle WebAuthn data validation error, please catch ValidationException
+            throw new RuntimeException("Exception while verifying registration data", e);
+        }
+
+        CredentialRecordImpl credentialRecord = new CredentialRecordImpl(
+                ret.getAttestationObject(),
+                ret.getCollectedClientData(),
+                ret.getClientExtensions(),
+                ret.getTransports()
+        );
+
+        return credentialRecord;
+    }
 
     public RegistrationData validateAndGetRegData(ServerPublicKeyCredential publicKeyCredential, SessionState sessionState){
 
@@ -83,23 +175,71 @@ public class Registrationutils {
 
     }
 
-    public CredentialEntity saveCredentials(RegRequest request, SessionState session, RegistrationData registrationData){
 
-        CredentialEntity credentialEntity = credUtils.getCredentialEntity(request, session, registrationData);
-        AuthenticatorEntity authenticatorEntity = credUtils.getAuthenticatorEntity(request, registrationData);
+    public User saveUser(RegistrationData registrationData){
+        CollectedClientData clientData = registrationData.getCollectedClientData();
+        if(Objects.isNull(clientData)){
+            throw new RuntimeException("ClientData is null/empty");
+        }
 
-        AuthenticatorEntity savedAuthnEntity = authenticatorRepository.save(authenticatorEntity);
-        credentialEntity.setAuthenticator(savedAuthnEntity);
+        // retrieve the session
+        String challenge = new String(Base64.getUrlEncoder().withoutPadding().encode(registrationData.getCollectedClientData().getChallenge().getValue()));
+        SessionState sessionState = (SessionState) redisService.find(challenge);
 
-        // persist the credentials
-        CredentialEntity savedCreds = credentialRepository.save(credentialEntity);
+        User user = sessionState.getUser();
+        UserEntity userEntity = UserEntity.builder()
+                .userId(user.getId())
+                .displayName(user.getDisplayName())
+                .username(user.getName())
+                .build();
 
-        return  savedCreds;
+        UserEntity exisintUser = userRepository.findByUsername(user.getName());
+        if(exisintUser == null){
+            userRepository.save(userEntity);
+        }else {
+            System.out.println("Not persisting the data");
+        }
+
+        return user;
     }
+
+//    public CredentialEntityOld saveCredentials(RegistrationRequest request, RegistrationData registrationData){
+//
+//        CollectedClientData clientData = registrationData.getCollectedClientData();
+//        String challenge = new String(clientData.getChallenge().getValue());
+//        SessionState session = (SessionState) redisService.find(challenge);
+//
+//
+//        CredentialEntityOld credentialEntity = credUtils.getCredentialEntity(request, session, registrationData);
+//        AuthenticatorEntity authenticatorEntity = credUtils.getAuthenticatorEntity(request, registrationData);
+//
+//        AuthenticatorEntity savedAuthnEntity = authenticatorRepository.save(authenticatorEntity);
+//        credentialEntity.setAuthenticator(savedAuthnEntity);
+//
+//        // persist the credentials
+//        CredentialEntityOld savedCreds = credentialRepository.save(credentialEntity);
+//
+//        return  savedCreds;
+//    }
+
+
+//    public CredentialEntity saveCredentials(RegRequest request, SessionState session, RegistrationData registrationData){
+//
+//        CredentialEntityOld credentialEntity = credUtils.getCredentialEntity(request, session, registrationData);
+//        AuthenticatorEntity authenticatorEntity = credUtils.getAuthenticatorEntity(request, registrationData);
+//
+//        AuthenticatorEntity savedAuthnEntity = authenticatorRepository.save(authenticatorEntity);
+//        credentialEntity.setAuthenticator(savedAuthnEntity);
+//
+//        // persist the credentials
+//        CredentialEntity savedCreds = credentialRepository.save(credentialEntity);
+//
+//        return  savedCreds;
+//    }
 
 
     // credentials are persisted, build "registration" response
-    public RegRequest getRegistrationResponse(CredentialEntity credEntity, SessionState sessionState){
+    public RegRequest getRegistrationResponse(CredentialEntityOld credEntity, SessionState sessionState){
         // aaguid
         UUID aaguid = credEntity.getAuthenticator().getAaguid();
         // credentialId
