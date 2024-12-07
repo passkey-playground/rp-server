@@ -13,12 +13,15 @@ import com.fido.demo.util.serde.WebAuthn4JSerDe;
 import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.AuthenticatorDataConverter;
 import com.webauthn4j.converter.util.ObjectConverter;
+import com.webauthn4j.credential.CredentialRecord;
 import com.webauthn4j.credential.CredentialRecordImpl;
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.RegistrationData;
 import com.webauthn4j.data.attestation.AttestationObject;
 import com.webauthn4j.data.attestation.authenticator.AAGUID;
+import com.webauthn4j.data.attestation.authenticator.AuthenticatorData;
 import com.webauthn4j.data.attestation.statement.AttestationStatement;
+import com.webauthn4j.data.client.CollectedClientData;
 import com.webauthn4j.util.Base64UrlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,6 +51,57 @@ public class CredUtils {
 
     /* --------------------------------- Registration Uitls (end) --------------------------------*/
 
+    // persist the WebAuthn4J CredentialRecordImpl
+    public CredentialEntity persistCredRecord(CredentialRecordImpl credentialRecord,
+                                              RegistrationData registrationData,
+                                              String credentialId,
+                                              String credentialRawId,
+                                              String username){
+        /**
+         * credential record has 4 main objects
+         * 1) attestationobject
+         * 2) collectedClientData
+         * 3) clientExtensions
+         * 4) transports
+         */
+
+        /* Attestation Object 1) authenticator data & 2) attestation statement */
+        AttestationObject attestationObject = registrationData.getAttestationObject();
+        byte[] authenticatorDataBytea = webAuthn4JSerDe.serialize(attestationObject.getAuthenticatorData());
+        byte[] attStmtBytea = webAuthn4JSerDe.serialize(credentialRecord.getAttestationStatement());
+
+        /* collectedClientData */
+        byte[] clientData = webAuthn4JSerDe.serialize(credentialRecord.getClientData());
+
+
+        /* client extensions */
+        //eg: webAuthn4JSerDe.serialize(credentialRecord.getClientExtensions())
+
+        /* transports */
+        Set<AuthenticatorTransport> transportSet = credentialRecord.getTransports();
+        String transports = webAuthn4JSerDe.serialize(transportSet);
+
+        /**
+         * 3 columns
+         * - authenticator_data
+         * - attestation_statement
+         * - client extensions
+         * - collected clientData
+         * - transports
+         */
+        CredentialEntity credentialEntity = CredentialEntity.builder()
+                .username(username)
+                .externalId(credentialId)
+                .externalIdRaw(credentialRawId)
+                .authenticatorData(authenticatorDataBytea)
+                .attestationStatement(attStmtBytea)
+                .collectedClientData(clientData)
+                .transports(transports)
+                .build();
+
+        CredentialEntity ret = credentialRepository.save(credentialEntity);
+        return ret;
+    }
 
     /* --------------------------------- Authentication Uitls (start)  --------------------------------*/
     // ToDO : change the cred argument to list
@@ -88,61 +142,10 @@ public class CredUtils {
         return response;
     }
 
-
     /* --------------------------------- Authentication Uitls (end)  --------------------------------*/
 
     /* --------------------------------- Common Uitls (start) --------------------------------*/
 
-    //for now serialize everything to bytea and persist
-    public CredentialEntity persistCredRecord(CredentialRecordImpl credentialRecord,
-                                              RegistrationData registrationData,
-                                              String credentialId,
-                                              String credentialRawId){
-
-        /**
-         * credential record has 4 main objects
-         * 1) attestationobject
-         * 2) collectedClientData
-         * 3) clientExtensions
-         * 4) transports
-         */
-
-        /* Attestation Object 1) authenticator data & 2) attestation statement */
-        AttestationObject attestationObject = registrationData.getAttestationObject();
-        byte[] authenticatorDataBytea = webAuthn4JSerDe.serialize(attestationObject.getAuthenticatorData());
-        byte[] attStmtBytea = webAuthn4JSerDe.serialize(credentialRecord.getAttestationStatement());
-
-        /* collectedClientData */
-        byte[] clientData = webAuthn4JSerDe.serialize(credentialRecord.getClientData());
-
-
-        /* client extensions */
-        //eg: webAuthn4JSerDe.serialize(credentialRecord.getClientExtensions())
-
-        /* transports */
-        Set<AuthenticatorTransport> transportSet = credentialRecord.getTransports();
-        String transports = webAuthn4JSerDe.serialize(transportSet);
-
-        /**
-         * 3 columns
-         * - authenticator_data
-         * - attestation_statement
-         * - client extensions
-         * - collected clientData
-         * - transports
-         */
-        CredentialEntity credentialEntity = CredentialEntity.builder()
-                .externalId(credentialId)
-                .externalIdRaw(credentialRawId)
-                .authenticatorData(authenticatorDataBytea)
-                .attestationStatement(attStmtBytea)
-                .collectedClientData(clientData)
-                .transports(transports)
-                .build();
-
-        CredentialEntity ret = credentialRepository.save(credentialEntity);
-        return ret;
-    }
     public CredentialEntityOld getCredentialEntity(RegRequest request, SessionState session, RegistrationData registrationData) {
         // id, user_id, rp_id, public_key(UUID), sign_count, transports, attestation_format, authenticator_credential_id
         //id is auto generated
@@ -272,6 +275,48 @@ public class CredUtils {
 
         return authenticatorEntity;
 
+    }
+
+    public CredentialRecord convertToWebAuthnRecord(CredentialEntity credential) {
+
+        /**
+         *
+         * Credential record:
+         *  - attestationobject
+         *  - collected client data
+         *  - transports
+         *  - extensions
+         *
+         *  AttestationObject
+         *  - authenticator data
+         *  - attestation statement
+         *
+         */
+
+        byte[] attestationStmtBytea = credential.getAttestationStatement();
+        byte[] authenticatorDataBytea = credential.getAuthenticatorData();
+        byte[] collectedClientDataBytea = credential.getCollectedClientData();
+
+
+        AttestationStatement attestationStatement = webAuthn4JSerDe.deSerAttStmt(attestationStmtBytea);
+        AuthenticatorData authenticatorData = webAuthn4JSerDe.deSerAuthenticatorData(authenticatorDataBytea);
+
+        AttestationObject attestationObject = new AttestationObject(authenticatorData, attestationStatement);
+
+        CollectedClientData collectedClientData = webAuthn4JSerDe.deSerCollectedClientData(collectedClientDataBytea);
+
+        AuthenticatorTransport internalTransport = AuthenticatorTransport.create("internal");
+        Set<AuthenticatorTransport> transports = new HashSet<>();
+        transports.add(internalTransport);
+
+        //
+        CredentialRecordImpl credentialRecord = new CredentialRecordImpl(
+                attestationObject,
+                collectedClientData,
+                null,
+                transports
+        );
+        return credentialRecord;
     }
 
     /* --------------------------------- Common Uitls --------------------------------*/

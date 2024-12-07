@@ -8,6 +8,15 @@ import lombok.Data;
 @Builder
 public class AuthnResponse {
 
+    @JsonProperty(value = "status")
+    @Builder.Default
+    private String status = "ok";
+
+    @JsonProperty(value = "errorMessage")
+    @Builder.Default
+    private String errorMessage = "";
+
+
     @JsonProperty
     private String aaguid;
 

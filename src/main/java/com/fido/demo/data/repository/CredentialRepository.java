@@ -12,6 +12,8 @@ import java.math.BigInteger;
 public interface CredentialRepository extends JpaRepository<CredentialEntity, BigInteger> {
     //List<CredentialEntityOld> findById(BigInteger id);
     List<CredentialEntity> findByUserId(BigInteger userId);
+    List<CredentialEntity> findByUsername(String username);
+    List<CredentialEntity> findByExternalId(String externalId);
     // List<CredentialEntity> findByRpIdAndUserId(BigInteger rpId, BigInteger userId);
     //List<CredentialEntity>  findByAuthenticatorCredentialId(byte[] authenticatorCredentialId);
 }

@@ -76,7 +76,8 @@ public class Registrationutils {
         return  registrationData;
     }
 
-    public CredentialRecordImpl verifyRegistrationData(RegistrationData registrationData, String clientDataJSON){
+    public CredentialRecordImpl verifyRegistrationData(RegistrationData registrationData,
+                                                       SessionState sessionState){
 
 
         CollectedClientData clientData = registrationData.getCollectedClientData();
@@ -85,13 +86,6 @@ public class Registrationutils {
         }
 
         // retrieve the session
-        String challenge = new String(Base64.getUrlEncoder().withoutPadding().encode(registrationData.getCollectedClientData().getChallenge().getValue()));
-        SessionState sessionState = (SessionState) redisService.find(challenge);
-
-        // validate or verify the data
-        if(Objects.isNull(sessionState)){
-            throw new RuntimeException("Invalid Challenge");
-        }
 
         Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
         String rpId = sessionState.getRp().getId() /* set rpId */;

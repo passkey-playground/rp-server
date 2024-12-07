@@ -10,6 +10,18 @@ import java.util.Map;
 @Builder
 public class AuthnOptions {
 
+    @JsonProperty(value = "status")
+    @Builder.Default
+    private String status = "ok";
+
+    @JsonProperty(value = "errorMessage")
+    @Builder.Default
+    private String errorMessage = "";
+
+
+    @JsonProperty("username")
+    private String username;
+
     // <----------------------- Request field(start) ------------------->
     @JsonProperty("rpId")
     private String rpId;

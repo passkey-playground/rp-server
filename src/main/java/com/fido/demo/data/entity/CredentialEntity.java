@@ -27,6 +27,9 @@ public class CredentialEntity {
     @SequenceGenerator(name = "cred_sequence_generator", sequenceName = "credentials_id_seq", allocationSize = 1)
     private BigInteger id;
 
+    @Column(name = "username", nullable = false)
+    private String username;
+
     @Column(name = "user_id")
     private BigInteger userId;
 

@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-
+import java.util.Objects;
 
 
 @Service("registrationService")
@@ -124,6 +124,51 @@ public class RegistrationService {
         return  response;
     }
 
+    public RegRequest createRegistration(RegistrationRequest request){
+
+        ServerPublicKeyCredential.Response registrationResponse = request.getResponse();
+
+        /**
+         * 1) parse the response
+         * 2) retrieve the session
+         * 3) verify the public key & create a credential record
+         * 4) serialize and persist credential record & user
+         */
+
+        // 1) parse the response
+        RegistrationData registrationData = registrationutils.parseRegistrationData(
+                registrationResponse.getAttestationObject(),
+                registrationResponse.getClientDataJSON()
+        );
+
+        // 2) retrieve the session
+        String challenge = new String(
+                Base64.getUrlEncoder()
+                .withoutPadding()
+                .encode(registrationData.getCollectedClientData().getChallenge().getValue())
+        );
+        SessionState sessionState = (SessionState) redisService.find(challenge);
+        if(Objects.isNull(sessionState)){
+            throw new RuntimeException("Invalid Challenge");
+        }
+
+        // 2) retrieve the session & 3) verify the public key
+        CredentialRecordImpl credentialRecord  = registrationutils
+                .verifyRegistrationData(registrationData, sessionState);
+
+        // 4) serialize and persist credential record
+        User user = registrationutils.saveUser(registrationData);
+        CredentialEntity credentialEntity = credUtils.persistCredRecord(
+                credentialRecord,
+                registrationData,
+                request.getId(),
+                request.getRawId(),
+                user.getName());
+
+        // construct the response and return
+        RegRequest response = RegRequest.builder().build();
+        return response;
+    }
 
     public RegOptions getRegOptions(RegOptions request){
         //session_id : secure random string
@@ -170,41 +215,6 @@ public class RegistrationService {
 
         return  response;
     }
-
-    public RegRequest createRegistration(RegistrationRequest request){
-
-        ServerPublicKeyCredential.Response registrationResponse = request.getResponse();
-
-        /**
-         * 1) parse the response
-         * 2) retrieve the session
-         * 3) verify the public key & create a credential record
-         * 4) serialize and persist credential record & user
-         */
-
-        // 1) parse the response
-        RegistrationData registrationData = registrationutils.parseRegistrationData(
-                registrationResponse.getAttestationObject(),
-                registrationResponse.getClientDataJSON()
-        );
-
-        // 2) retrieve the session & 3) verify the public key
-        CredentialRecordImpl credentialRecord  = registrationutils.verifyRegistrationData(registrationData, request.getResponse().getClientDataJSON());
-
-        // 3) serialize and persist credential record
-        User user = registrationutils.saveUser(registrationData);
-        CredentialEntity credentialEntity = credUtils.persistCredRecord(
-                credentialRecord,
-                registrationData,
-                request.getId(),
-                request.getRawId());
-
-
-        // construct the response and return
-        RegRequest response = RegRequest.builder().build();
-        return response;
-    }
-
 }
 
 

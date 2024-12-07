@@ -8,6 +8,17 @@ import lombok.Data;
 @Data
 @Builder
 public class AuthnRequest {
+
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("type")
+    private String type;
+
+
+    @JsonProperty("response")
+    private ServerPublicKeyCredential.Response response;
+
     @JsonProperty
     private ServerPublicKeyCredential serverPublicKeyCredential;
 

@@ -71,6 +71,21 @@ public class WebAuthn4JSerDe {
         return ret;
     }
 
+    public AuthenticatorData deSerAuthenticatorData(byte[] data){
+        /**
+         * Authenticator data contains:
+         * -> rpIdHash
+         * -> flags
+         * -> counter
+         * -> authenticatorCredentialData
+         */
+
+        ObjectConverter objectConverter = new ObjectConverter();
+        AuthenticatorDataConverter converter = new AuthenticatorDataConverter(objectConverter);
+        AuthenticatorData ret = converter.convert(data);
+        return ret;
+    }
+
 
 
 
