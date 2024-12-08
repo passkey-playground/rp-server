@@ -21,20 +21,19 @@ import org.springframework.web.bind.annotation.RestController;
 public interface RegistrationController {
 
     // Get challenge options for registration
-    @PostMapping(value = "/registration/options", consumes = "application/json")
+    @PostMapping(value = {"/registration/options", "/attestation/options"}, consumes = "application/json")
     ResponseEntity<RegOptions> registrationOptions(@RequestBody RegOptionsRequest request) ;
 
-    @PostMapping("/registration")
+    @PostMapping(value = {"/registration", "/attestation/result"})
     ResponseEntity<RegRequest> registration(@RequestBody RegistrationRequest request);
 
-    @PostMapping(value = "/attestation/options", consumes = "application/json")
+    /* old interfaces
+
+    //@PostMapping(value = "/attestation/options", consumes = "application/json")
     ResponseEntity<RegOptions> attestationOptions(@RequestBody RegOptionsRequest request) ;
 
-    @PostMapping("/attestation/result")
+    //@PostMapping("/attestation/result")
     ResponseEntity<RegRequest> attestation(@RequestBody RegistrationRequest request);
-
-
-    /* old interfaces
 
     @PostMapping(value = "/registration/options", consumes = "application/json")
     ResponseEntity<RegOptions> getRegOptions(@RequestBody RegOptions request) ;

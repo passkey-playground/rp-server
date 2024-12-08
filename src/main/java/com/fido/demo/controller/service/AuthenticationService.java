@@ -113,18 +113,5 @@ public class AuthenticationService {
             System.out.println("Update the sign count");
         }
         return AuthnResponse.builder().build();
-
-        /*
-        // fetch the session State: ToDo if session not found, return 404 or 400
-        SessionState session = sessionUtils.retrieveSession(request);
-
-        // validate the challenge & signature sent by client using the registered public-key
-        AuthenticationData authenticationData = authenticationUtils.validateAndGetAuthnData(request.getServerPublicKeyCredential(), session);
-
-        // persist the credential with updates to sign_count and build the response object
-        AuthnResponse authnResponse = authenticationUtils.updateCredentials(request.getServerPublicKeyCredential(), authenticationData, session);
-
-        return authnResponse;
-         */
     }
 }

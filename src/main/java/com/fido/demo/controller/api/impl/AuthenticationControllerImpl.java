@@ -15,13 +15,11 @@ public class AuthenticationControllerImpl implements AuthenticationController {
     @Autowired
     AuthenticationService authenticationService;
 
-    @Override
     public ResponseEntity<AuthnOptions> getAuthnOptions(AuthnOptions request) {
         AuthnOptions response = authenticationService.getAuthNOptions(request);
         return ResponseEntity.ok(response);
     }
 
-    @Override
     public ResponseEntity<AuthnResponse> verifyAuthentication(AuthnRequest request) {
         AuthnResponse response = authenticationService.authenticate(request);
         return ResponseEntity.ok(response);
