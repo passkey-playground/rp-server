@@ -61,7 +61,18 @@ public class AuthenticationUtils {
         byte[] authenticatorData = Base64.getUrlDecoder().decode(response.getAuthenticatorData()); /* set attestationObject */
         byte[] clientDataJSON = Base64.getDecoder().decode(response.getClientDataJSON()); /* set clientDataJSON */;
         String clientExtensionJSON = null;  /* set clientExtensionJSON */;
-        byte[] signature = Base64.getDecoder().decode(response.getSignature());
+        byte[] signature = response.getSignature().getBytes();
+        String sanitizedSignature = response.getSignature().replace("_", "/").replace('-', '+');
+        while (sanitizedSignature.length() % 4 != 0) {
+                sanitizedSignature += "=";
+        }
+        byte[] signatureTest = null;
+        try {
+           signatureTest = Base64.getDecoder().decode(sanitizedSignature);
+        }catch (Exception e){
+            System.out.println("Exception "+e.getMessage());
+        }
+
         //Set<String> transports = CollectionUtils.isEmpty(clientResponse.getTransports()) ? null : new HashSet<String>(clientResponse.getTransports()); /* set transports: ToDO : handle empty transports */;
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
@@ -70,7 +81,8 @@ public class AuthenticationUtils {
             authenticatorData,
             clientDataJSON,
             clientExtensionJSON,
-            signature
+            //signature
+            signatureTest
         );
 
         AuthenticationData authenticationData;
@@ -106,6 +118,9 @@ public class AuthenticationUtils {
 
 
         List<byte[]> allowCredentials = new ArrayList<>();
+        //byte[] credId = credential.getExternalIdRaw().getBytes();
+        byte[] credId = credential.getExternalId().getBytes();
+        allowCredentials.add(credId);
 
         boolean userVerificationRequired = true;
         boolean userPresenceRequired = true;
@@ -117,6 +132,16 @@ public class AuthenticationUtils {
                 userVerificationRequired,
                 userPresenceRequired
         );
+
+        AuthenticationData authnData = null;
+        try {
+               authnData = webAuthnManager.verify(authenticationData, authnParams);
+        } catch (VerificationException e) {
+            // If you would like to handle WebAuthn data validation error, please catch ValidationException
+            throw new RuntimeException("Failed to validate authentication data", e);
+        }
+
+        return true;
 
     }
 

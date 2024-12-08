@@ -23,6 +23,6 @@ public interface AuthenticationController {
     @PostMapping("/assertion/options")
     public ResponseEntity<AuthnOptions> getAssertionOptions(@RequestBody AuthnOptions request);
 
-    @PostMapping("/assertion")
+    @PostMapping("/assertion/result")
     public ResponseEntity<AuthnResponse> verifyAssertion(@RequestBody AuthnRequest request);
 }

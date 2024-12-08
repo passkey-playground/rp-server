@@ -104,25 +104,27 @@ public class AuthenticationService {
 
     public AuthnResponse authenticate(AuthnRequest request) {
 
-        // fetch credentials
+        // verify the assertion: ToDO: too much crammed into single function, break it down
         boolean isVerified = authenticationUtils.verifyAssertion(request.getResponse(), request.getId());
 
-
         // construct webauthn mnager and verify the authentication
+        if(isVerified) {
+            // update the sign count
+            System.out.println("Update the sign count");
+        }
+        return AuthnResponse.builder().build();
 
+        /*
+        // fetch the session State: ToDo if session not found, return 404 or 400
+        SessionState session = sessionUtils.retrieveSession(request);
 
+        // validate the challenge & signature sent by client using the registered public-key
+        AuthenticationData authenticationData = authenticationUtils.validateAndGetAuthnData(request.getServerPublicKeyCredential(), session);
 
+        // persist the credential with updates to sign_count and build the response object
+        AuthnResponse authnResponse = authenticationUtils.updateCredentials(request.getServerPublicKeyCredential(), authenticationData, session);
 
-        return null;
-//        // fetch the session State: ToDo if session not found, return 404 or 400
-//        SessionState session = sessionUtils.retrieveSession(request);
-//
-//        // validate the challenge & signature sent by client using the registered public-key
-//        AuthenticationData authenticationData = authenticationUtils.validateAndGetAuthnData(request.getServerPublicKeyCredential(), session);
-//
-//        // persist the credential with updates to sign_count and build the response object
-//        AuthnResponse authnResponse = authenticationUtils.updateCredentials(request.getServerPublicKeyCredential(), authenticationData, session);
-//
-//        return authnResponse;
+        return authnResponse;
+         */
     }
 }
