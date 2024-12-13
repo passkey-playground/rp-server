@@ -34,12 +34,12 @@ public class RegistartionControllerImpl implements RegistrationController {
         return ResponseEntity.ok(regResponse);
     }
 
-    @Override
+    //@Override
     public ResponseEntity<RegOptions> attestationOptions(RegOptionsRequest request) {
         return registrationOptions(request);
     }
 
-    @Override
+    //@Override
     public ResponseEntity<RegRequest> attestation(RegistrationRequest request) {
         return registration(request);
     }

@@ -58,8 +58,8 @@ public class Registrationutils {
         byte[] attestationBytea = base64Utils.decodeURLAsBytes(attestationObject);
         byte[] clientDataBytea = base64Utils.decodeURLAsBytes(clientDataJSON);
 
-        String clientExtensionJSON = null;  /* set clientExtensionJSON */;
-        Set<String> transports = new HashSet<String>(); /* ToDo: set transports from response*/;
+        String clientExtensionJSON = null;  /* set clientExtensionJSON */
+        Set<String> transports = new HashSet<String>(); /* ToDo: set transports from response*/
 
 
         RegistrationRequest registrationRequest = new RegistrationRequest(attestationBytea, clientDataBytea,
@@ -89,7 +89,7 @@ public class Registrationutils {
 
         Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
         String rpId = sessionState.getRp().getId() /* set rpId */;
-        Challenge originalChallenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */;
+        Challenge originalChallenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */
         byte[] tokenBindingId = null /* set tokenBindingId */;
         ServerProperty serverProperty = new ServerProperty(origin, rpId, originalChallenge, tokenBindingId);
 
@@ -130,14 +130,14 @@ public class Registrationutils {
 
         // client properties
         byte[] attestationObject = Base64.getUrlDecoder().decode(clientResponse.getAttestationObject()); /* set attestationObject */
-        byte[] clientDataJSON = Base64.getDecoder().decode(clientResponse.getClientDataJSON()); /* set clientDataJSON */;
-        String clientExtensionJSON = null;  /* set clientExtensionJSON */;
-        Set<String> transports = new HashSet<String>(clientResponse.getTransports()); /* set transports */;
+        byte[] clientDataJSON = Base64.getDecoder().decode(clientResponse.getClientDataJSON()); /* set clientDataJSON */
+        String clientExtensionJSON = null;  /* set clientExtensionJSON */
+        Set<String> transports = new HashSet<String>(clientResponse.getTransports()); /* set transports */
 
         // Server properties
         Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
         String rpId = sessionState.getRp().getId() /* set rpId */;
-        Challenge challenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */;
+        Challenge challenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */
         byte[] tokenBindingId = null /* set tokenBindingId */;
         ServerProperty serverProperty = new ServerProperty(origin, rpId, challenge, tokenBindingId);
 
@@ -178,7 +178,7 @@ public class Registrationutils {
 
         // retrieve the session
         String challenge = new String(Base64.getUrlEncoder().withoutPadding().encode(registrationData.getCollectedClientData().getChallenge().getValue()));
-        SessionState sessionState = (SessionState) redisService.find(challenge);
+        SessionState sessionState = redisService.find(challenge);
 
         User user = sessionState.getUser();
         UserEntity userEntity = UserEntity.builder()
@@ -196,40 +196,6 @@ public class Registrationutils {
 
         return user;
     }
-
-//    public CredentialEntityOld saveCredentials(RegistrationRequest request, RegistrationData registrationData){
-//
-//        CollectedClientData clientData = registrationData.getCollectedClientData();
-//        String challenge = new String(clientData.getChallenge().getValue());
-//        SessionState session = (SessionState) redisService.find(challenge);
-//
-//
-//        CredentialEntityOld credentialEntity = credUtils.getCredentialEntity(request, session, registrationData);
-//        AuthenticatorEntity authenticatorEntity = credUtils.getAuthenticatorEntity(request, registrationData);
-//
-//        AuthenticatorEntity savedAuthnEntity = authenticatorRepository.save(authenticatorEntity);
-//        credentialEntity.setAuthenticator(savedAuthnEntity);
-//
-//        // persist the credentials
-//        CredentialEntityOld savedCreds = credentialRepository.save(credentialEntity);
-//
-//        return  savedCreds;
-//    }
-
-
-//    public CredentialEntity saveCredentials(RegRequest request, SessionState session, RegistrationData registrationData){
-//
-//        CredentialEntityOld credentialEntity = credUtils.getCredentialEntity(request, session, registrationData);
-//        AuthenticatorEntity authenticatorEntity = credUtils.getAuthenticatorEntity(request, registrationData);
-//
-//        AuthenticatorEntity savedAuthnEntity = authenticatorRepository.save(authenticatorEntity);
-//        credentialEntity.setAuthenticator(savedAuthnEntity);
-//
-//        // persist the credentials
-//        CredentialEntity savedCreds = credentialRepository.save(credentialEntity);
-//
-//        return  savedCreds;
-//    }
 
 
     // credentials are persisted, build "registration" response
@@ -297,7 +263,7 @@ public class Registrationutils {
 
         AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection();
         authenticatorSelection.setUserVerification(userVerificationConfig == null ? "preferred" : userVerificationConfig.getSettingValue()); // ToDo : move to constants
-        authenticatorSelection.setRequireResidentKey(requireResidentKey == null ? false : Boolean.valueOf(requireResidentKey.getSettingValue()));
+        authenticatorSelection.setRequireResidentKey(requireResidentKey != null && Boolean.valueOf(requireResidentKey.getSettingValue()));
         authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? "platform" : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
 
         return authenticatorSelection;

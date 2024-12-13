@@ -45,8 +45,10 @@ public class AuthenticationService {
 
     @Autowired
     private AuthenticationUtils authenticationUtils;
+
     @Autowired
     private CryptoUtil cryptoUtil;
+
     @Autowired
     private RedisService redisService;
 
