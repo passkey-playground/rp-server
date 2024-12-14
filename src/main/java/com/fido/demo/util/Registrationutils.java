@@ -1,7 +1,7 @@
 package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.common.User;
-import com.fido.demo.controller.pojo.registration.RegRequest;
+import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.service.pojo.SessionState;
@@ -21,7 +21,6 @@ import com.webauthn4j.data.client.Origin;
 import com.webauthn4j.data.client.challenge.Challenge;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
-import com.webauthn4j.util.HexUtil;
 import com.webauthn4j.verifier.exception.VerificationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -199,48 +198,6 @@ public class Registrationutils {
 
 
     // credentials are persisted, build "registration" response
-    public RegRequest getRegistrationResponse(CredentialEntityOld credEntity, SessionState sessionState){
-        // aaguid
-        UUID aaguid = credEntity.getAuthenticator().getAaguid();
-        // credentialId
-        String credentialId = new String(credEntity.getAuthenticatorCredentialId());
-
-        //attestationType
-        String attestationType = credEntity.getAttestationFormat();
-
-        // authenticatorTransports
-        String authenticatorTransports = StringUtils.collectionToDelimitedString(credEntity.getAuthenticator().getTransports(), ",");
-
-        //userVerified: ToDo: update this code
-        boolean userVerified = true;
-
-        //residentKey present or not: ToDO : update this code
-        boolean rk = true;
-
-        // set userId, rpId, origin, tokenBinding
-        String origin = sessionState.getRp().getOrigin();
-        String rpId = sessionState.getRp().getId() ;
-        String userId = sessionState.getUser().getId();
-
-        String sessionid = sessionState.getSessionId();
-
-        RegRequest ret = RegRequest.builder()
-                .origin(origin)
-                .rpId(rpId)
-                .sessionId(sessionid)
-                .aaguid(aaguid.toString())
-                .credentialId(credentialId)
-                .attestationType(attestationType)
-                .authenticatorTransports(new ArrayList<String>(){{
-                    add(authenticatorTransports);
-                }})
-                .userVerified(userVerified)
-                .rk(rk)
-                .build();
-
-        return ret;
-
-    }
 
     public AuthenticatorSelection getAuthenticatorSelection(List<RelyingPartyConfigEntity> rpConfigs){
         /*

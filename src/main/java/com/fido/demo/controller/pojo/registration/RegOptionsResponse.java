@@ -10,10 +10,9 @@ import lombok.*;
 
 import java.util.List;
 
-@Deprecated // NON conformant for now
 @Data
 @Builder
-public class RegOptions {
+public class RegOptionsResponse {
 
     @JsonProperty(value = "status")
     @Builder.Default
@@ -29,27 +28,30 @@ public class RegOptions {
     @JsonProperty("user")
     private User user;
 
-    @JsonProperty("authenticatorSelection")
-    private AuthenticatorSelection authenticatorSelection;
-
-    @JsonProperty("attestation")
-    private String attestation;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonProperty("credProtect")
-    private String credProtect;
-
     @JsonProperty("challenge")
     private String challenge;
 
     @JsonProperty("pubKeyCredParams")
     private List<PubKeyCredParam> pubKeyCredParams;
 
-    @JsonProperty("timeout")
-    private long timeout;
+    @JsonProperty("authenticatorSelection")
+    private AuthenticatorSelection authenticatorSelection;
+
+    @JsonProperty("attestation")
+    private String attestation;
 
     @JsonProperty("excludeCredentials") //ToDo : define a type here
     private List<Object> excludeCredentials;
+
+    /*------------ below fields are not needed ---------------------------*/
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("credProtect")
+    private String credProtect;
+
+    @JsonProperty("timeout")
+    private long timeout;
+
 
     @JsonProperty("sessionId")
     private String sessionId;

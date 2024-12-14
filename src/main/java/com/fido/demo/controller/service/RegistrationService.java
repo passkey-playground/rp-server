@@ -5,9 +5,9 @@ import com.fido.demo.controller.pojo.common.RP;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.User;
 import com.fido.demo.controller.pojo.registration.RegOptionsRequest;
-import com.fido.demo.controller.pojo.registration.RegRequest;
+import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
-import com.fido.demo.controller.pojo.registration.RegOptions;
+import com.fido.demo.controller.pojo.registration.RegOptionsResponse;
 import com.fido.demo.controller.pojo.registration.RegistrationRequest;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.CredentialEntity;
@@ -67,7 +67,7 @@ public class RegistrationService {
     private CredUtils credUtils;
 
 
-    public RegOptions getRegOptions(RegOptionsRequest request){
+    public RegOptionsResponse getRegOptions(RegOptionsRequest request){
         //ToDo: Move all the validations to validators
 
         //NOTE: FIDO conformane tests doesn't have RP_ID in the request, default to an RP
@@ -107,7 +107,7 @@ public class RegistrationService {
         redisService.save(challenge, state);
 
         // response
-        RegOptions response = RegOptions.builder()
+        RegOptionsResponse response = RegOptionsResponse.builder()
                 /*  Mandatory fields (start) */
                 .rp(rp)                                                   /* relying party*/
                 .user(user)                                               /* user  */
@@ -124,7 +124,7 @@ public class RegistrationService {
         return  response;
     }
 
-    public RegRequest createRegistration(RegistrationRequest request){
+    public RegistrationResponse createRegistration(RegistrationRequest request){
 
         ServerPublicKeyCredential.Response registrationResponse = request.getResponse();
 
@@ -166,11 +166,11 @@ public class RegistrationService {
                 user.getName());
 
         // construct the response and return
-        RegRequest response = RegRequest.builder().build();
+        RegistrationResponse response = RegistrationResponse.builder().build();
         return response;
     }
 
-    public RegOptions getRegOptions(RegOptions request){
+    public RegOptionsResponse getRegOptions(RegOptionsResponse request){
         //session_id : secure random string
         String sessionId = cryptoUtil.getRandomBase64String();
 
@@ -199,7 +199,7 @@ public class RegistrationService {
 
         redisService.save(sessionId, state); // save the state for subsequent calls
 
-        RegOptions response = RegOptions.builder() // build the response
+        RegOptionsResponse response = RegOptionsResponse.builder() // build the response
                 /*  Mandatory fields (start) */
                 .rp(request.getRp())                                                   /* relying party*/
                 .user(request.getUser())                                               /* user  */
@@ -216,102 +216,3 @@ public class RegistrationService {
         return  response;
     }
 }
-
-
-// Sample incoming request
-/*
-{
-  "rp" : {
-    "name" : "Test RP",
-    "icon" : null,
-    "id" : "localhost"
-  },
-  "user" : {
-    "name" : "TestUser",
-    "icon" : null,
-    "id" : "65fUCTlqPlOSk22tkrkJ2m8I2MEhpF4fCI_pdosMAzk",
-    "displayName" : "Test Display Name"
-  },
-  "authenticatorSelection": {
-    "requireResidentKey": true,
-    "userVerification": "preferred",
-    "authenticatorAttachment": "platform"
-  },
-  "attestation": "none",
-  "credProtect" : null
-}
-*/
-
-
-// Sample response
-/*
-{
-  "serverResponse" : {
-    "description" : null,
-    "internalError" : "SUCCESS",
-    "internalErrorCode" : 0,
-    "internalErrorCodeDescription" : null
-  },
-  "rp" : {
-    "name" : "example1",
-    "icon" : null,
-    "id" : "localhost"
-  },
-  "user" : {
-    "name" : "TestUser",
-    "icon" : null,
-    "id" : "65fUCTlqPlOSk22tkrkJ2m8I2MEhpF4fCI_pdosMAzk",
-    "displayName" : "Test Display Name"
-  },
-  "challenge" : "4uxOYNYRZ0a-WPuh24Uki0kNrM5_ioDPVNgaCfy2szLzc0QaVamxa66Y7v8bAyxUGiqU7O8mXP36R_oyWaVDpg",
-  "pubKeyCredParams" : [ {
-    "type" : "public-key",
-    "alg" : -65535
-  }, {
-    "type" : "public-key",
-    "alg" : -257
-  }, {
-    "type" : "public-key",
-    "alg" : -258
-  }, {
-    "type" : "public-key",
-    "alg" : -259
-  }, {
-    "type" : "public-key",
-    "alg" : -37
-  }, {
-    "type" : "public-key",
-    "alg" : -38
-  }, {
-    "type" : "public-key",
-    "alg" : -39
-  }, {
-    "type" : "public-key",
-    "alg" : -7
-  }, {
-    "type" : "public-key",
-    "alg" : -35
-  }, {
-    "type" : "public-key",
-    "alg" : -36
-  }, {
-    "type" : "public-key",
-    "alg" : -8
-  }, {
-    "type" : "public-key",
-    "alg" : -43
-  } ],
-  "timeout" : 180000,
-  "excludeCredentials" : [ ],
-  "authenticatorSelection" : {
-    "authenticatorAttachment" : "platform",
-    "requireResidentKey" : true,
-    "userVerification" : "preferred"
-  },
-  "attestation" : "none",
-  "sessionId" : "d9adf5d0-e819-42de-ac35-defa241f1b6c",
-  "extensions" : {
-    "credProps" : true
-  }
-}
-*/

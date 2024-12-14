@@ -1,6 +1,6 @@
-package com.fido.demo.controller.api.impl;
+package com.fido.demo.controller.impl;
 
-import com.fido.demo.controller.api.AuthenticationController;
+import com.fido.demo.controller.api.Authentication;
 import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import com.fido.demo.controller.pojo.authentication.AuthnResponse;
@@ -10,29 +10,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component("authenticationController")
-public class AuthenticationControllerImpl implements AuthenticationController {
+public class AuthenticationImpl implements Authentication {
 
     @Autowired
     AuthenticationService authenticationService;
 
-    public ResponseEntity<AuthnOptions> getAuthnOptions(AuthnOptions request) {
+    @Override
+    public ResponseEntity<AuthnOptions> getOptions(AuthnOptions request){
         AuthnOptions response = authenticationService.getAuthNOptions(request);
         return ResponseEntity.ok(response);
-    }
-
-    public ResponseEntity<AuthnResponse> verifyAuthentication(AuthnRequest request) {
-        AuthnResponse response = authenticationService.authenticate(request);
-        return ResponseEntity.ok(response);
-    }
-
-    @Override
-    public ResponseEntity<AuthnOptions> getAssertionOptions(AuthnOptions request){
-        return getAuthnOptions(request);
     };
 
     @Override
     public ResponseEntity<AuthnResponse> verifyAssertion(AuthnRequest request){
-        return verifyAuthentication(request);
+        AuthnResponse response = authenticationService.authenticate(request);
+        return ResponseEntity.ok(response);
     };
 
 }

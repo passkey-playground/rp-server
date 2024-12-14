@@ -1,7 +1,7 @@
 package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.authentication.AuthnOptions;
-import com.fido.demo.controller.pojo.registration.RegRequest;
+import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.AuthenticatorEntity;
@@ -146,42 +146,6 @@ public class CredUtils {
 
     /* --------------------------------- Common Uitls (start) --------------------------------*/
 
-    public CredentialEntityOld getCredentialEntity(RegRequest request, SessionState session, RegistrationData registrationData) {
-        // id, user_id, rp_id, public_key(UUID), sign_count, transports, attestation_format, authenticator_credential_id
-        //id is auto generated
-
-        // rp_id : note this is Db id
-        BigInteger rpId = session.getRpDbId();
-
-        // user_id
-        BigInteger userId = session.getUserDbId();
-
-        // public_key
-        byte[] publicKey = this.getPubKey(request).getBytes();
-
-        // signCount
-        long signCount = this.getSignCount(registrationData);
-
-        // ToDo : for now only attestation_none cases are handled => below hard coded value
-        String attestationFormat = "none";
-
-        // authenticator_credential_id
-        byte[] authneticatorCredentialId = request.getServerPublicKeyCredential().getId().getBytes();
-
-        List<CredentialConfigEntity> configs = this.getCredentialConfigs(session, registrationData);
-
-        CredentialEntityOld credentialEntity = CredentialEntityOld.builder()
-                .rpId(rpId)                                                      /* Column : rp_id */
-                .userId(userId)                                                  /* Column : user_id */
-                .publicKey(publicKey)                                            /* Column : public_key */
-                .sign_count(signCount)                                           /* Column : sign_count */
-                .attestationFormat(attestationFormat)                            /* Column : attestation_format */
-                .authenticatorCredentialId(authneticatorCredentialId)            /* Column : authenticator_credential_id */
-                .configs(configs)                                                /* Child : credential configs */
-                .build();
-
-        return  credentialEntity;
-    }
 
     //ToDo : currently only attestation_data is stored, function is too specific. refactor this ********** High Priority ************************
     private List<CredentialConfigEntity> getCredentialConfigs(SessionState session, RegistrationData registrationData){
@@ -251,19 +215,8 @@ public class CredUtils {
         return  signCount;
     }
 
-    private String getPubKey(RegRequest request) {
-        ServerPublicKeyCredential serverPublicKeyCredential = request.getServerPublicKeyCredential();
-        String publicKey = serverPublicKeyCredential.getResponse().getPublicKey();
-        return publicKey;
-    }
 
-    private String getTransports(RegRequest request){
-        ServerPublicKeyCredential serverPublicKeyCredential = request.getServerPublicKeyCredential();
-        List<String> transports = serverPublicKeyCredential.getResponse().getTransports();
-        return String.join(",", transports);
-    }
-
-    public AuthenticatorEntity getAuthenticatorEntity(RegRequest request, RegistrationData registrationData){
+    public AuthenticatorEntity getAuthenticatorEntity(RegistrationResponse request, RegistrationData registrationData){
         // transports
         List<String> transports = registrationData.getTransports().stream().map(transport -> transport.getValue()).collect(Collectors.toList()); // ToDo : handle multiple transports
         AAGUID aauid = registrationData.getAttestationObject().getAuthenticatorData().getAttestedCredentialData().getAaguid();

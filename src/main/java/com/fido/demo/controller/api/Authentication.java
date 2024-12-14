@@ -11,22 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/fido2")
-public interface AuthenticationController {
+public interface Authentication {
 
     @PostMapping(value = {"/assertion/options", "/authentication/options"})
-    public ResponseEntity<AuthnOptions> getAssertionOptions(@RequestBody AuthnOptions request);
+    ResponseEntity<AuthnOptions> getOptions(@RequestBody AuthnOptions request);
 
     @PostMapping(value = {"/assertion/result", "/authentication"})
-    public ResponseEntity<AuthnResponse> verifyAssertion(@RequestBody AuthnRequest request);
-
-    /**
-     *  Old interfaces
-     *  
-     * // Get challenge options for registration
-     *     @PostMapping("/authentication/options")
-     *     public ResponseEntity<AuthnOptions> getAuthnOptions(@RequestBody AuthnOptions request);
-     *
-     *     @PostMapping("/authentication")
-     *     public ResponseEntity<AuthnResponse> verifyAuthentication(@RequestBody AuthnRequest request);
-     */
+    ResponseEntity<AuthnResponse> verifyAssertion(@RequestBody AuthnRequest request);
 }

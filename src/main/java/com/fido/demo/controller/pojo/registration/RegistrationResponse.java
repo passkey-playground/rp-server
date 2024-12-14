@@ -12,18 +12,17 @@ import java.util.List;
  */
 @Data
 @Builder
-public class RegistrationRequest {
+public class RegistrationResponse {
 
-    @JsonProperty("id")
-    public String id;
 
-    @JsonProperty("rawId")
-    public String rawId;
+    /*----------------- Response fields (start) -----------------------------*/
 
-    @JsonProperty("type")
-    public String type;
+    @JsonProperty(value = "status")
+    @Builder.Default
+    private String status = "ok";
 
-    @JsonProperty("response")
-    public ServerPublicKeyCredential.Response response;
+    @JsonProperty(value = "errorMessage")
+    @Builder.Default
+    private String errorMessage = "";
 
 }
