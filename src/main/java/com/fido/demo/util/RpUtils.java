@@ -2,8 +2,16 @@ package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.PubKeyCredParam;
-import com.fido.demo.data.entity.RelyingPartyConfigEntity;
+import com.fido.demo.controller.pojo.common.RP;
+import com.fido.demo.controller.service.pojo.CermonyConfigs;
+import com.fido.demo.data.entity.RPConfigEntity;
+import com.fido.demo.data.entity.RelyingPartyEntity;
+import com.fido.demo.data.repository.RPConfigRepository;
+import com.fido.demo.data.repository.RPRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +21,27 @@ import java.util.List;
 @Component
 public class RpUtils {
 
-    public List<PubKeyCredParam> getPubKeyCredParam(List<RelyingPartyConfigEntity> rpConfigs) {
-        RelyingPartyConfigEntity algorithms = rpConfigs.stream()
+    @Autowired
+    RPRepository rpRepository;
+
+    @Autowired
+    RPConfigRepository rpConfigRepository;
+
+    public RP getRP(){
+        //NOTE: FIDO conformane tests doesn't have RP_ID in the request, default to an RP
+        RelyingPartyEntity rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
+        if(rpEntity == null){
+            throw new ResourceNotFoundException("RP not found");
+        }
+        return RP.builder()
+                .id(rpEntity.getRpId())
+                .name(rpEntity.getName())
+                .origin(rpEntity.getOrigin())
+                .build();
+    }
+
+    public List<PubKeyCredParam> getPubKeyCredParam(List<RPConfigEntity> rpConfigs) {
+        RPConfigEntity algorithms = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals("public_key_alg"))
                                                     .findFirst()
                 .orElse(null);
@@ -39,8 +66,8 @@ public class RpUtils {
         return pubKeyCredParam;
     }
 
-    public long getTimeout(List<RelyingPartyConfigEntity> rpConfigs){
-        RelyingPartyConfigEntity timeout = rpConfigs.stream()
+    public long getTimeout(List<RPConfigEntity> rpConfigs){
+        RPConfigEntity timeout = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals("timeout"))
                                                     .findFirst().orElse(null);
 
@@ -53,8 +80,8 @@ public class RpUtils {
 
     }
 
-    public String getAttestation(List<RelyingPartyConfigEntity> rpConfigs){
-        RelyingPartyConfigEntity attestation = rpConfigs.stream()
+    public String getAttestation(List<RPConfigEntity> rpConfigs){
+        RPConfigEntity attestation = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.ATTESTATION))
                                                     .findFirst().orElse(null);
         if(attestation == null){
@@ -63,22 +90,23 @@ public class RpUtils {
         return attestation.getSettingValue();
     }
 
-    public AuthenticatorSelection getAuthenticatorSelection(List<RelyingPartyConfigEntity> rpConfigs){
+    public AuthenticatorSelection getAuthenticatorSelection(List<RPConfigEntity> rpConfigs){
         /*
         * setting_name
         * require_user_verification
         * authenticator_attachment
         * require_resident_key
         * */
-        RelyingPartyConfigEntity userVerificationConfig = rpConfigs.stream()
+
+        RPConfigEntity userVerificationConfig = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.REQUIRE_USER_VERIFICATION))
                                                     .findFirst().orElse(null);
 
-        RelyingPartyConfigEntity requireResidentKey = rpConfigs.stream()
+        RPConfigEntity requireResidentKey = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.REQUIRE_RESIDENT_KEY))
                                                     .findFirst().orElse(null);
 
-        RelyingPartyConfigEntity authenticatorAttachment = rpConfigs.stream()
+        RPConfigEntity authenticatorAttachment = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals(CommonConstants.AUTHENTICATOR_ATTACHMENT))
                                                     .findFirst().orElse(null);
 
@@ -88,5 +116,30 @@ public class RpUtils {
         authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? CommonConstants.AUTHN_ATTACHMENT_PLATFORM_STRING : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
 
         return authenticatorSelection;
+    }
+
+    public CermonyConfigs getCermonyConfigs(String rpId){
+        RelyingPartyEntity rpEntity = rpRepository.findByRpId(rpId);
+
+        List<RPConfigEntity> rpConfigs = rpConfigRepository.findByRelyingPartyId(rpEntity.getId());
+
+        if(CollectionUtils.isEmpty(rpConfigs)){
+            //ToDO: retrun default values
+        }
+
+        AuthenticatorSelection authenticatorSelection = this.getAuthenticatorSelection(rpConfigs);
+        String attestation = this.getAttestation(rpConfigs);
+
+        List<PubKeyCredParam> pubKeyCredParam = this.getPubKeyCredParam(rpConfigs);
+        long timeout = this.getTimeout(rpConfigs);
+
+        CermonyConfigs cermonyConfigs = CermonyConfigs.builder()
+                .authenticatorSelection(authenticatorSelection)
+                .pubKeyCredPams(pubKeyCredParam)
+                .attestation(attestation)
+                .timeout(timeout)
+                .build();
+
+        return  cermonyConfigs;
     }
 }

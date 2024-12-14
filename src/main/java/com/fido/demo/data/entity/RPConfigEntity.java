@@ -18,14 +18,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RelyingPartyConfigEntity {
+public class RPConfigEntity {
 
     @Id
     @Column(name = "id")
     private BigInteger id;
 
     @Column(name = "rp_id")
-    private int relyingPartyId;
+    private BigInteger relyingPartyId;
 
     @Column(name = "setting_key")
     private String settingKey;

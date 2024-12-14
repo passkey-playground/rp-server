@@ -46,6 +46,6 @@ public class RelyingPartyEntity {
 
     @JoinColumn(name = "rp_id")
     @OneToMany(fetch = FetchType.LAZY)
-    private List<RelyingPartyConfigEntity> configs;
+    private List<RPConfigEntity> configs;
 
 }

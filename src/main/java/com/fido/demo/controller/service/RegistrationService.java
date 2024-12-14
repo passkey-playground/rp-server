@@ -9,6 +9,7 @@ import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.registration.RegOptionsResponse;
 import com.fido.demo.controller.pojo.registration.RegistrationRequest;
+import com.fido.demo.controller.service.pojo.CermonyConfigs;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.CredentialEntity;
 import com.fido.demo.data.entity.RelyingPartyEntity;
@@ -69,30 +70,16 @@ public class RegistrationService {
 
     public RegOptionsResponse getRegOptions(RegOptionsRequest request){
         //ToDo: Move all the validations to validators
+        User user = userUtils.getUser(request.getUserName(), request.getDisplayName());
 
         //NOTE: FIDO conformane tests doesn't have RP_ID in the request, default to an RP
-        RelyingPartyEntity rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
-        if(rpEntity == null){
-            throw new ResourceNotFoundException("RP not found");
-        }
-        RP rp = RP.builder()
-                .id(rpEntity.getRpId())
-                .name(rpEntity.getName())
-                .origin(rpEntity.getOrigin())
-                .build();
-
-        //ToDo: Should the user exist in Db "yes/no"? for now error out if "no"
-        User user = userUtils.getUser(request.getUserName(), request.getDisplayName());
+        RP rp = rpUtils.getRP();
 
         //ToDo: dont return the value configured for RP,
         //match it with rp values or fail if config and incoming value mismatch
-        AuthenticatorSelection authenticatorSelection = rpUtils.getAuthenticatorSelection(rpEntity.getConfigs());
-        String attestation = rpUtils.getAttestation(rpEntity.getConfigs());
+        CermonyConfigs cermonyConfigs = rpUtils.getCermonyConfigs(rp.getId());
 
-        List<PubKeyCredParam> pubKeyCredParam = rpUtils.getPubKeyCredParam(rpEntity.getConfigs());
-        long timeout = rpUtils.getTimeout(rpEntity.getConfigs());
         String challenge = cryptoUtil.getRandomBase64String();// challenge
-        //String challenge = cryptoUtil.getRandmString();
 
         // save the state for subsequent calls
         SessionState state = SessionState.builder()
@@ -101,8 +88,8 @@ public class RegistrationService {
                 .rpId(rp.getId())
                 .rp(rp)
                 .user(user)
-                .authenticatorSelection(request.getAuthenticatorSelection())
-                .timeout(timeout)
+                .authenticatorSelection(request.getAuthenticatorSelection()) //ToDo: don't return the request
+                .timeout(cermonyConfigs.getTimeout())
                 .build();
         redisService.save(challenge, state);
 
@@ -112,11 +99,11 @@ public class RegistrationService {
                 .rp(rp)                                                   /* relying party*/
                 .user(user)                                               /* user  */
                 .challenge(challenge)                                     /* challenge */
-                .pubKeyCredParams(pubKeyCredParam)                        /* pubKeyCredParams */
+                .pubKeyCredParams(cermonyConfigs.getPubKeyCredPams())                        /* pubKeyCredParams */
                 /*  Mandatory fields (end) */
-                .authenticatorSelection(authenticatorSelection)            /* authenticator selection */
-                .attestation(attestation)                                  /* attestation */
-                .timeout(timeout)                                          /* timeout */
+                .authenticatorSelection(cermonyConfigs.getAuthenticatorSelection())            /* authenticator selection */
+                .attestation(cermonyConfigs.getAttestation())                                  /* attestation */
+                .timeout(cermonyConfigs.getTimeout())                                          /* timeout */
                 .excludeCredentials(new ArrayList<>())                     /* excludeCredentials : ToDo - fetch deactivated or deleted creds for the user and set here */
                 //.sessionId(sessionId)                                    /* sessionId */
                 .build();

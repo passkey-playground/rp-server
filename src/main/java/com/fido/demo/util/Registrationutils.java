@@ -1,7 +1,6 @@
 package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.common.User;
-import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.service.pojo.SessionState;
@@ -24,7 +23,6 @@ import com.webauthn4j.server.ServerProperty;
 import com.webauthn4j.verifier.exception.VerificationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -199,22 +197,22 @@ public class Registrationutils {
 
     // credentials are persisted, build "registration" response
 
-    public AuthenticatorSelection getAuthenticatorSelection(List<RelyingPartyConfigEntity> rpConfigs){
+    public AuthenticatorSelection getAuthenticatorSelection(List<RPConfigEntity> rpConfigs){
         /*
         * setting_name
         * require_user_verification
         * authenticator_attachment
         * require_resident_key
         * */
-        RelyingPartyConfigEntity userVerificationConfig = rpConfigs.stream()
+        RPConfigEntity userVerificationConfig = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals("require_user_verification"))
                                                     .findFirst().orElse(null);
 
-        RelyingPartyConfigEntity requireResidentKey = rpConfigs.stream()
+        RPConfigEntity requireResidentKey = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals("require_resident_key"))
                                                     .findFirst().orElse(null);
 
-        RelyingPartyConfigEntity authenticatorAttachment = rpConfigs.stream()
+        RPConfigEntity authenticatorAttachment = rpConfigs.stream()
                                                     .filter(rpConfig -> rpConfig.getSettingKey().equals("authenticator_attachment"))
                                                     .findFirst().orElse(null);
 
