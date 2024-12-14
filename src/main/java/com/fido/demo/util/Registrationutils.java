@@ -9,6 +9,7 @@ import com.fido.demo.data.redis.RedisService;
 import com.fido.demo.data.repository.AuthenticatorRepository;
 import com.fido.demo.data.repository.CredentialRepository;
 import com.fido.demo.data.repository.UserRepository;
+import com.fido.demo.util.webauthn4j.WebAuthnUtils;
 import com.webauthn4j.WebAuthnRegistrationManager;
 import com.webauthn4j.converter.exception.DataConversionException;
 import com.webauthn4j.credential.CredentialRecordImpl;
@@ -40,18 +41,24 @@ public class Registrationutils {
 
     @Autowired
     Base64Utils base64Utils;
+
     @Autowired
     private RedisService redisService;
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     JSONUtils jsonUtils;
 
-    public RegistrationData parseRegistrationData(String attestationObject, String clientDataJSON){
-        WebAuthnRegistrationManager webAuthnManager = WebAuthnRegistrationManager.createNonStrictWebAuthnRegistrationManager();
+    @Autowired
+    WebAuthnUtils webAuthnUtils;
 
-        //byte[] attestationBytea = base64Utils.decodeAsBytea(attestationObject);
+    public RegistrationData parseRegistrationData(String attestationObject,
+                                                  String clientDataJSON){
+        //ToDO: Create a "request" scoped or "thread safe" bean and init it there
+
+
         byte[] attestationBytea = base64Utils.decodeURLAsBytes(attestationObject);
         byte[] clientDataBytea = base64Utils.decodeURLAsBytes(clientDataJSON);
 
@@ -64,7 +71,7 @@ public class Registrationutils {
 
         RegistrationData registrationData = null;
         try{
-            registrationData = webAuthnManager.parse(registrationRequest);
+            registrationData = webAuthnUtils.parse(registrationRequest);
         }
         catch (DataConversionException e){
             throw new RuntimeException("Exception while parsing registration data", e);
@@ -99,11 +106,9 @@ public class Registrationutils {
                 userVerificationRequired,
                 userPresenceRequired);
 
-        WebAuthnRegistrationManager webAuthnManager =
-                WebAuthnRegistrationManager.createNonStrictWebAuthnRegistrationManager();
         RegistrationData ret = null;
         try {
-            ret = webAuthnManager.verify(registrationData, registrationParameters);
+            ret = webAuthnUtils.verify(registrationData, registrationParameters);
         }
         catch (VerificationException e){
             // If you would like to handle WebAuthn data validation error, please catch ValidationException
@@ -119,54 +124,7 @@ public class Registrationutils {
 
         return credentialRecord;
     }
-
-    public RegistrationData validateAndGetRegData(ServerPublicKeyCredential publicKeyCredential, SessionState sessionState){
-
-        WebAuthnRegistrationManager webAuthnManager = WebAuthnRegistrationManager.createNonStrictWebAuthnRegistrationManager();
-        ServerPublicKeyCredential.Response clientResponse = publicKeyCredential.getResponse();
-
-        // client properties
-        byte[] attestationObject = Base64.getUrlDecoder().decode(clientResponse.getAttestationObject()); /* set attestationObject */
-        byte[] clientDataJSON = Base64.getDecoder().decode(clientResponse.getClientDataJSON()); /* set clientDataJSON */
-        String clientExtensionJSON = null;  /* set clientExtensionJSON */
-        Set<String> transports = new HashSet<String>(clientResponse.getTransports()); /* set transports */
-
-        // Server properties
-        Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
-        String rpId = sessionState.getRp().getId() /* set rpId */;
-        Challenge challenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */
-        byte[] tokenBindingId = null /* set tokenBindingId */;
-        ServerProperty serverProperty = new ServerProperty(origin, rpId, challenge, tokenBindingId);
-
-        // expectations
-        boolean userVerificationRequired = false;
-        boolean userPresenceRequired = true;
-
-        RegistrationRequest registrationRequest = new RegistrationRequest(attestationObject, clientDataJSON, clientExtensionJSON, transports);
-        RegistrationParameters registrationParameters = new RegistrationParameters(serverProperty, userVerificationRequired, userPresenceRequired);
-
-        RegistrationData registrationData;
-        try{
-            registrationData = webAuthnManager.parse(registrationRequest);
-        }
-        catch (DataConversionException e){
-            // If you would like to handle WebAuthn data structure parse error, please catch DataConversionException
-            throw e;
-        }
-
-        try{
-            webAuthnManager.verify(registrationData, registrationParameters);
-        }
-        catch (VerificationException e){
-            // If you would like to handle WebAuthn data validation error, please catch ValidationException
-            throw e;
-        }
-
-        return registrationData;
-
-    }
-
-
+    
     public User saveUser(RegistrationData registrationData){
         CollectedClientData clientData = registrationData.getCollectedClientData();
         if(Objects.isNull(clientData)){
@@ -192,36 +150,6 @@ public class Registrationutils {
         }
 
         return user;
-    }
-
-
-    // credentials are persisted, build "registration" response
-
-    public AuthenticatorSelection getAuthenticatorSelection(List<RPConfigEntity> rpConfigs){
-        /*
-        * setting_name
-        * require_user_verification
-        * authenticator_attachment
-        * require_resident_key
-        * */
-        RPConfigEntity userVerificationConfig = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("require_user_verification"))
-                                                    .findFirst().orElse(null);
-
-        RPConfigEntity requireResidentKey = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("require_resident_key"))
-                                                    .findFirst().orElse(null);
-
-        RPConfigEntity authenticatorAttachment = rpConfigs.stream()
-                                                    .filter(rpConfig -> rpConfig.getSettingKey().equals("authenticator_attachment"))
-                                                    .findFirst().orElse(null);
-
-        AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection();
-        authenticatorSelection.setUserVerification(userVerificationConfig == null ? "preferred" : userVerificationConfig.getSettingValue()); // ToDo : move to constants
-        authenticatorSelection.setRequireResidentKey(requireResidentKey != null && Boolean.valueOf(requireResidentKey.getSettingValue()));
-        authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? "platform" : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
-
-        return authenticatorSelection;
     }
 
 }

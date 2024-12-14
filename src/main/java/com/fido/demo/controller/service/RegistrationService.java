@@ -119,7 +119,9 @@ public class RegistrationService {
 
         // 1) parse the response
         RegistrationData registrationData = registrationutils.parseRegistrationData(
+                /* attestation object: fmt, authData, attStmt */
                 registrationResponse.getAttestationObject(),
+                /* client data json: type, challenge, origin, cross-origin, token-bidning*/
                 registrationResponse.getClientDataJSON()
         );
 
@@ -138,7 +140,7 @@ public class RegistrationService {
         CredentialRecordImpl credentialRecord  = registrationutils
                 .verifyRegistrationData(registrationData, sessionState);
 
-        // 4) serialize and persist credential record
+        // 4) serialize and persist: user & credential records
         User user = registrationutils.saveUser(registrationData);
         CredentialEntity credentialEntity = credUtils.persistCredRecord(
                 credentialRecord,
