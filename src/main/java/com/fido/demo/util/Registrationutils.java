@@ -1,16 +1,13 @@
 package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.common.User;
-import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
-import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
-import com.fido.demo.controller.service.pojo.SessionState;
+import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.*;
 import com.fido.demo.data.redis.RedisService;
 import com.fido.demo.data.repository.AuthenticatorRepository;
 import com.fido.demo.data.repository.CredentialRepository;
 import com.fido.demo.data.repository.UserRepository;
 import com.fido.demo.util.webauthn4j.WebAuthnUtils;
-import com.webauthn4j.WebAuthnRegistrationManager;
 import com.webauthn4j.converter.exception.DataConversionException;
 import com.webauthn4j.credential.CredentialRecordImpl;
 import com.webauthn4j.data.RegistrationData;
@@ -54,8 +51,8 @@ public class Registrationutils {
     @Autowired
     WebAuthnUtils webAuthnUtils;
 
-    public RegistrationData parseRegistrationData(String attestationObject,
-                                                  String clientDataJSON){
+    public RegistrationData parseAttestation(String attestationObject,
+                                             String clientDataJSON){
         //ToDO: Create a "request" scoped or "thread safe" bean and init it there
 
 
@@ -80,8 +77,8 @@ public class Registrationutils {
         return  registrationData;
     }
 
-    public CredentialRecordImpl verifyRegistrationData(RegistrationData registrationData,
-                                                       SessionState sessionState){
+    public CredentialRecordImpl verifyAttestation(RegistrationData registrationData,
+                                                  SessionBO sessionBO){
 
 
         CollectedClientData clientData = registrationData.getCollectedClientData();
@@ -91,9 +88,9 @@ public class Registrationutils {
 
         // retrieve the session
 
-        Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
-        String rpId = sessionState.getRp().getId() /* set rpId */;
-        Challenge originalChallenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */
+        Origin origin = Origin.create(sessionBO.getRp().getOrigin()) /* set origin */;
+        String rpId = sessionBO.getRp().getId() /* set rpId */;
+        Challenge originalChallenge = new DefaultChallenge(sessionBO.getChallenge()); /* set challenge */
         byte[] tokenBindingId = null /* set tokenBindingId */;
         ServerProperty serverProperty = new ServerProperty(origin, rpId, originalChallenge, tokenBindingId);
 
@@ -124,7 +121,7 @@ public class Registrationutils {
 
         return credentialRecord;
     }
-    
+
     public User saveUser(RegistrationData registrationData){
         CollectedClientData clientData = registrationData.getCollectedClientData();
         if(Objects.isNull(clientData)){
@@ -133,9 +130,9 @@ public class Registrationutils {
 
         // retrieve the session
         String challenge = new String(Base64.getUrlEncoder().withoutPadding().encode(registrationData.getCollectedClientData().getChallenge().getValue()));
-        SessionState sessionState = redisService.find(challenge);
+        SessionBO sessionBO = redisService.find(challenge);
 
-        User user = sessionState.getUser();
+        User user = sessionBO.getUser();
         UserEntity userEntity = UserEntity.builder()
                 .userId(user.getId())
                 .displayName(user.getDisplayName())

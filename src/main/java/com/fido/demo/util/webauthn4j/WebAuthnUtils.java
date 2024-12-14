@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class WebAuthnUtils {
 
-
     private WebAuthnRegistrationManager registrationManager;
 
     @PostConstruct
@@ -22,7 +21,6 @@ public class WebAuthnUtils {
     public RegistrationData parse(RegistrationRequest request){
         return registrationManager.parse(request);
     }
-
 
     public RegistrationData verify(RegistrationData data, RegistrationParameters parameters){
         return registrationManager.verify(data, parameters);

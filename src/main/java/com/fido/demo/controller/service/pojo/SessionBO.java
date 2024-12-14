@@ -9,10 +9,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
+// Serializable BO
 @Data
 @Builder
 @Jacksonized
-public class SessionState {
+public class SessionBO {
     private String sessionId;
 
     private RP rp;

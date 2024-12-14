@@ -5,54 +5,25 @@ import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import com.fido.demo.controller.pojo.authentication.AuthnResponse;
 import com.fido.demo.controller.pojo.common.RP;
 import com.fido.demo.controller.pojo.common.User;
-import com.fido.demo.controller.service.pojo.SessionState;
+import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.CredentialEntity;
-import com.fido.demo.data.entity.CredentialEntityOld;
 import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.data.entity.UserEntity;
-import com.fido.demo.data.redis.RedisService;
-import com.fido.demo.data.repository.CredentialRepository;
-import com.fido.demo.data.repository.RPRepository;
-import com.fido.demo.data.repository.UserRepository;
 import com.fido.demo.util.*;
-import com.webauthn4j.data.AuthenticationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service("authenticationService")
-public class AuthenticationService {
-    @Autowired
-    CredentialRepository credentialRepository;
-
-    @Autowired
-    RPRepository rpRepository;
-
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    SessionUtils sessionUtils;
-
-    @Autowired
-    CredUtils credUtils;
+public class AuthenticationService extends BaseService {
 
     @Autowired
     private AuthenticationUtils authenticationUtils;
 
-    @Autowired
-    private CryptoUtil cryptoUtil;
-
-    @Autowired
-    private RedisService redisService;
-
-    public AuthnOptions getAuthNOptions(AuthnOptions request){
+    public AuthnOptions getOptions(AuthnOptions request){
 
         // fetch the user
         UserEntity userEntity = userRepository.findByUsername(request.getUsername());
@@ -84,12 +55,12 @@ public class AuthenticationService {
 
         // persist the session
         String challenge = cryptoUtil.getRandomBase64String();
-        SessionState sessionState = SessionState.builder()
+        SessionBO sessionBO = SessionBO.builder()
                 .challenge(challenge)
                 .user(user)
                 .rp(rp)
                 .build();
-        redisService.save(challenge, sessionState);
+        redisService.save(challenge, sessionBO);
 
 
         // build response

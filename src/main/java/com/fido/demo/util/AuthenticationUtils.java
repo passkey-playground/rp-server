@@ -1,43 +1,25 @@
 package com.fido.demo.util;
 
-import com.fido.demo.controller.pojo.authentication.AuthnResponse;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
-import com.fido.demo.controller.service.pojo.SessionState;
-import com.fido.demo.data.entity.AuthenticatorEntity;
-import com.fido.demo.data.entity.CredentialConfigEntity;
+import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.CredentialEntity;
-import com.fido.demo.data.entity.CredentialEntityOld;
 import com.fido.demo.data.redis.RedisService;
 import com.fido.demo.data.repository.CredentialRepository;
 import com.webauthn4j.WebAuthnAuthenticationManager;
-import com.webauthn4j.converter.AuthenticatorDataConverter;
-import com.webauthn4j.converter.AuthenticatorTransportConverter;
-import com.webauthn4j.converter.CollectedClientDataConverter;
 import com.webauthn4j.converter.exception.DataConversionException;
-import com.webauthn4j.converter.util.ObjectConverter;
 import com.webauthn4j.credential.CredentialRecord;
-import com.webauthn4j.credential.CredentialRecordImpl;
 import com.webauthn4j.data.AuthenticationData;
 import com.webauthn4j.data.AuthenticationParameters;
 import com.webauthn4j.data.AuthenticationRequest;
-import com.webauthn4j.data.AuthenticatorTransport;
-import com.webauthn4j.data.attestation.AttestationObject;
-import com.webauthn4j.data.attestation.authenticator.AuthenticatorData;
-import com.webauthn4j.data.attestation.statement.AttestationStatement;
-import com.webauthn4j.data.client.CollectedClientData;
 import com.webauthn4j.data.client.Origin;
 import com.webauthn4j.data.client.challenge.Challenge;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
-import com.webauthn4j.util.Base64UrlUtil;
 import com.webauthn4j.verifier.exception.VerificationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-
-import static com.fido.demo.util.CommonConstants.*;
 
 @Component
 public class AuthenticationUtils {
@@ -99,14 +81,14 @@ public class AuthenticationUtils {
                 .encode(authenticationData.getCollectedClientData().getChallenge().getValue())
         );
 
-        SessionState sessionState = (SessionState) redisService.find(sessionKey);
-        if(Objects.isNull(sessionState)){
+        SessionBO sessionBO = (SessionBO) redisService.find(sessionKey);
+        if(Objects.isNull(sessionBO)){
             throw new RuntimeException("Invalid Challenge");
         }
 
-        Origin origin = Origin.create(sessionState.getRp().getOrigin()) /* set origin */;
-        String rpId = sessionState.getRp().getId() /* set rpId */;
-        Challenge challenge = new DefaultChallenge(sessionState.getChallenge()); /* set challenge */;
+        Origin origin = Origin.create(sessionBO.getRp().getOrigin()) /* set origin */;
+        String rpId = sessionBO.getRp().getId() /* set rpId */;
+        Challenge challenge = new DefaultChallenge(sessionBO.getChallenge()); /* set challenge */;
         byte[] tokenBindingId = null /* set tokenBindingId */;
         ServerProperty serverProperty = new ServerProperty(origin, rpId, challenge, tokenBindingId);
 

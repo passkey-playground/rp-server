@@ -1,7 +1,7 @@
 package com.fido.demo.data.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fido.demo.controller.service.pojo.SessionState;
+import com.fido.demo.controller.service.pojo.SessionBO;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,12 +16,12 @@ class RedisConfig {
 
 
     @Bean
-    public RedisTemplate<String, SessionState> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, SessionState> template = new RedisTemplate<>();
+    public RedisTemplate<String, SessionBO> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, SessionBO> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
 
         // Use Jackson2JsonRedisSerializer for serialization
-        Jackson2JsonRedisSerializer<SessionState> serializer = new Jackson2JsonRedisSerializer<>(SessionState.class);
+        Jackson2JsonRedisSerializer<SessionBO> serializer = new Jackson2JsonRedisSerializer<>(SessionBO.class);
         ObjectMapper objectMapper = new ObjectMapper();
         // Customize the ObjectMapper if needed
         serializer.setObjectMapper(objectMapper);

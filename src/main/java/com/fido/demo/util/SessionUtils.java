@@ -8,7 +8,7 @@ import com.fido.demo.controller.service.pojo.CermonyBO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fido.demo.controller.service.pojo.SessionState;
+import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.data.entity.UserEntity;
 import com.fido.demo.data.redis.RedisService;
@@ -30,10 +30,10 @@ public class SessionUtils {
     @Autowired
     RpUtils rpUtils;
 
-    public SessionState persistAttestationState(User user,
-                                                String challenge,
-                                                CermonyBO cermonyBO){
-        SessionState state = SessionState.builder()
+    public SessionBO persistAttestationState(User user,
+                                             String challenge,
+                                             CermonyBO cermonyBO){
+        SessionBO state = SessionBO.builder()
                 .sessionId(challenge) // use challenge as session key
                 .challenge(challenge)
                 .rpId(cermonyBO.getRp().getId())
@@ -46,43 +46,9 @@ public class SessionUtils {
         return state;
     }
 
-    public SessionState retrieveSession(AuthnRequest request){
-        SessionState session = (SessionState) redisService.find(request.getSessionId());
+    public SessionBO retrieveSession(AuthnRequest request){
+        SessionBO session = (SessionBO) redisService.find(request.getSessionId());
         return session;
-    }
-
-    public SessionState getAuthnSession(AuthnOptions request, RelyingPartyEntity rpEntity, UserEntity userEntity){
-        String sessionId = cryptoUtil.getRandomBase64String(32);
-
-        String challenge = cryptoUtil.getRandomBase64String(32);
-        String challengeBase64 = Base64.getEncoder().encodeToString(challenge.getBytes());
-
-        // ToDO: build RP from rpEntity not from incoming request
-        RP rp = RP.builder()
-                .id(request.getRpId())
-                .origin(rpEntity.getOrigin())
-                .build();
-
-        User user = User.builder()
-        .displayName(userEntity.getDisplayName())
-        .id(userEntity.getUserId())
-        .build();
-
-        long timeout = rpUtils.getTimeout(rpEntity.getConfigs());
-
-        SessionState state = SessionState.builder() // ToDo : instead of saving the incoming data without validation, validate and persist
-                .sessionId(sessionId)
-                .rp(rp)
-                .user(user)
-                .challenge(challengeBase64)
-                .timeout(timeout)
-                .rpDbId(rpEntity.getId())
-                .userDbId(userEntity.getId())
-                .build();
-
-        redisService.save(sessionId, state); // save the state for subsequent calls
-
-        return state;
     }
 
 }

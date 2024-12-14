@@ -2,8 +2,7 @@ package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.registration.RegistrationResponse;
-import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
-import com.fido.demo.controller.service.pojo.SessionState;
+import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.AuthenticatorEntity;
 import com.fido.demo.data.entity.CredentialConfigEntity;
 import com.fido.demo.data.entity.CredentialEntity;
@@ -27,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.fido.demo.util.CommonConstants.*;
-import java.math.BigInteger;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -105,7 +104,7 @@ public class CredUtils {
 
     /* --------------------------------- Authentication Uitls (start)  --------------------------------*/
     // ToDO : change the cred argument to list
-    public AuthnOptions getAuthnOptionsResponse(List<CredentialEntityOld> registeredCreds, SessionState state){
+    public AuthnOptions getAuthnOptionsResponse(List<CredentialEntityOld> registeredCreds, SessionBO state){
 
         // challenge
         String challenge = state.getChallenge();
@@ -148,7 +147,7 @@ public class CredUtils {
 
 
     //ToDo : currently only attestation_data is stored, function is too specific. refactor this ********** High Priority ************************
-    private List<CredentialConfigEntity> getCredentialConfigs(SessionState session, RegistrationData registrationData){
+    private List<CredentialConfigEntity> getCredentialConfigs(SessionBO session, RegistrationData registrationData){
 
         // store attestationObject and attestationStatement as strings
         ObjectConverter objectConverter = new ObjectConverter();

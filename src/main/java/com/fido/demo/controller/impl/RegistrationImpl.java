@@ -18,13 +18,13 @@ public class RegistrationImpl implements Registration {
 
     @Override
     public ResponseEntity<RegOptionsResponse> getOptions(RegOptionsRequest request) {
-        RegOptionsResponse regOptionsResponse = registrationService.getRegOptions(request);
+        RegOptionsResponse regOptionsResponse = registrationService.getOptions(request);
         return ResponseEntity.ok(regOptionsResponse);
     }
 
     @Override
     public ResponseEntity<RegistrationResponse> verifyAttestation(RegistrationRequest request) {
-        RegistrationResponse regResponse = registrationService.createRegistration(request);
+        RegistrationResponse regResponse = registrationService.register(request);
         return ResponseEntity.ok(regResponse);
     }
 

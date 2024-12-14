@@ -17,7 +17,7 @@ public class AuthenticationImpl implements Authentication {
 
     @Override
     public ResponseEntity<AuthnOptions> getOptions(AuthnOptions request){
-        AuthnOptions response = authenticationService.getAuthNOptions(request);
+        AuthnOptions response = authenticationService.getOptions(request);
         return ResponseEntity.ok(response);
     };
 
