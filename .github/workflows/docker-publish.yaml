@@ -26,8 +26,14 @@ jobs:
 
     # Step 4: Build Docker image
     - name: Build Docker image
-      run: |
-        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/demo-app:latest .
+      run: |        
+        docker build \
+          --build-arg POSTGRES_URL=${{ secrets.POSTGRES_URL }} \
+          --build-arg POSTGRES_USERNAME=${{ secrets.POSTGRES_USERNAME }} \
+          --build-arg POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+          --build-arg REDIS_URL=${{ secrets.REDIS_URL }} \
+          --build-arg REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+          -t ${{ secrets.ACR_LOGIN_SERVER }}/demo-app:latest .
 
     # Step 5: Push Docker image to ACR
     - name: Push Docker image
