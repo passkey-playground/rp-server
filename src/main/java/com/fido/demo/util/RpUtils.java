@@ -3,7 +3,7 @@ package com.fido.demo.util;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.PubKeyCredParam;
 import com.fido.demo.controller.pojo.common.RP;
-import com.fido.demo.controller.service.pojo.CermonyConfigs;
+import com.fido.demo.controller.service.pojo.CermonyBO;
 import com.fido.demo.data.entity.RPConfigEntity;
 import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.data.repository.RPConfigRepository;
@@ -118,11 +118,16 @@ public class RpUtils {
         return authenticatorSelection;
     }
 
-    public CermonyConfigs getCermonyConfigs(String rpId){
-        RelyingPartyEntity rpEntity = rpRepository.findByRpId(rpId);
+    public CermonyBO getCermonyConfigs(){
+        RelyingPartyEntity rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
+
+        RP rp = RP.builder()
+                .id(rpEntity.getRpId())
+                .name(rpEntity.getName())
+                .origin(rpEntity.getOrigin())
+                .build();
 
         List<RPConfigEntity> rpConfigs = rpConfigRepository.findByRelyingPartyId(rpEntity.getId());
-
         if(CollectionUtils.isEmpty(rpConfigs)){
             //ToDO: retrun default values
         }
@@ -133,13 +138,14 @@ public class RpUtils {
         List<PubKeyCredParam> pubKeyCredParam = this.getPubKeyCredParam(rpConfigs);
         long timeout = this.getTimeout(rpConfigs);
 
-        CermonyConfigs cermonyConfigs = CermonyConfigs.builder()
+        CermonyBO cermonyBO = CermonyBO.builder()
+                .rp(rp)
                 .authenticatorSelection(authenticatorSelection)
                 .pubKeyCredPams(pubKeyCredParam)
                 .attestation(attestation)
                 .timeout(timeout)
                 .build();
 
-        return  cermonyConfigs;
+        return cermonyBO;
     }
 }

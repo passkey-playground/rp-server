@@ -4,6 +4,7 @@ package com.fido.demo.util;
 
 import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.authentication.AuthnRequest;
+import com.fido.demo.controller.service.pojo.CermonyBO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,22 @@ public class SessionUtils {
 
     @Autowired
     RpUtils rpUtils;
+
+    public SessionState persistAttestationState(User user,
+                                                String challenge,
+                                                CermonyBO cermonyBO){
+        SessionState state = SessionState.builder()
+                .sessionId(challenge) // use challenge as session key
+                .challenge(challenge)
+                .rpId(cermonyBO.getRp().getId())
+                .rp(cermonyBO.getRp())
+                .user(user)
+                .authenticatorSelection(cermonyBO.getAuthenticatorSelection())
+                .timeout(cermonyBO.getTimeout())
+                .build();
+        redisService.save(challenge, state);
+        return state;
+    }
 
     public SessionState retrieveSession(AuthnRequest request){
         SessionState session = (SessionState) redisService.find(request.getSessionId());

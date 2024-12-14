@@ -1,7 +1,6 @@
 package com.fido.demo.controller.service;
 
 import com.fido.demo.controller.pojo.PubKeyCredParam;
-import com.fido.demo.controller.pojo.common.RP;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.User;
 import com.fido.demo.controller.pojo.registration.RegOptionsRequest;
@@ -9,7 +8,7 @@ import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.registration.RegOptionsResponse;
 import com.fido.demo.controller.pojo.registration.RegistrationRequest;
-import com.fido.demo.controller.service.pojo.CermonyConfigs;
+import com.fido.demo.controller.service.pojo.CermonyBO;
 import com.fido.demo.controller.service.pojo.SessionState;
 import com.fido.demo.data.entity.CredentialEntity;
 import com.fido.demo.data.entity.RelyingPartyEntity;
@@ -30,7 +29,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
-
+//ToDo: Move all the validations to validators
 @Service("registrationService")
 public class RegistrationService {
 
@@ -66,44 +65,40 @@ public class RegistrationService {
 
     @Autowired
     private CredUtils credUtils;
+    @Autowired
+    private SessionUtils sessionUtils;
 
 
     public RegOptionsResponse getRegOptions(RegOptionsRequest request){
-        //ToDo: Move all the validations to validators
+
+        /**
+         * 1) create user
+         * 2) fetch RP and its configs
+         * 3) build the cermony configs
+         * 4) persist state
+         * 5) build and return response
+         */
+
         User user = userUtils.getUser(request.getUserName(), request.getDisplayName());
 
-        //NOTE: FIDO conformane tests doesn't have RP_ID in the request, default to an RP
-        RP rp = rpUtils.getRP();
-
-        //ToDo: dont return the value configured for RP,
-        //match it with rp values or fail if config and incoming value mismatch
-        CermonyConfigs cermonyConfigs = rpUtils.getCermonyConfigs(rp.getId());
+        CermonyBO cermonyBO = rpUtils.getCermonyConfigs();
 
         String challenge = cryptoUtil.getRandomBase64String();// challenge
 
         // save the state for subsequent calls
-        SessionState state = SessionState.builder()
-                .sessionId(challenge) // use challenge as session key
-                .challenge(challenge)
-                .rpId(rp.getId())
-                .rp(rp)
-                .user(user)
-                .authenticatorSelection(request.getAuthenticatorSelection()) //ToDo: don't return the request
-                .timeout(cermonyConfigs.getTimeout())
-                .build();
-        redisService.save(challenge, state);
+        SessionState state = sessionUtils.persistAttestationState(user, challenge, cermonyBO);
 
         // response
         RegOptionsResponse response = RegOptionsResponse.builder()
                 /*  Mandatory fields (start) */
-                .rp(rp)                                                   /* relying party*/
+                .rp(cermonyBO.getRp())                                                   /* relying party*/
                 .user(user)                                               /* user  */
                 .challenge(challenge)                                     /* challenge */
-                .pubKeyCredParams(cermonyConfigs.getPubKeyCredPams())                        /* pubKeyCredParams */
+                .pubKeyCredParams(cermonyBO.getPubKeyCredPams())                        /* pubKeyCredParams */
                 /*  Mandatory fields (end) */
-                .authenticatorSelection(cermonyConfigs.getAuthenticatorSelection())            /* authenticator selection */
-                .attestation(cermonyConfigs.getAttestation())                                  /* attestation */
-                .timeout(cermonyConfigs.getTimeout())                                          /* timeout */
+                .authenticatorSelection(cermonyBO.getAuthenticatorSelection())            /* authenticator selection */
+                .attestation(cermonyBO.getAttestation())                                  /* attestation */
+                .timeout(cermonyBO.getTimeout())                                          /* timeout */
                 .excludeCredentials(new ArrayList<>())                     /* excludeCredentials : ToDo - fetch deactivated or deleted creds for the user and set here */
                 //.sessionId(sessionId)                                    /* sessionId */
                 .build();
