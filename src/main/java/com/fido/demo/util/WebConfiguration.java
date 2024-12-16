@@ -13,7 +13,7 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addMapping("/**")
                 //.allowedOrigins("http://example.com")
                 //.allowedOrigins("*")
-                .allowedOrigins("https://www.sowmya.com")
+                .allowedOrigins("https://www.sowmya.com", "http://demo.com")
                 .allowCredentials(true)
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*");

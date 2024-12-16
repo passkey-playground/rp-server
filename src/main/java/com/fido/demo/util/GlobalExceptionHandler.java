@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Autowired
     private Environment environment;
-
 
     // Handle specific exceptions
     @ExceptionHandler(ResourceNotFoundException.class)

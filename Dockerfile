@@ -25,21 +25,5 @@ COPY --from=build /app/build/libs/*SNAPSHOT.jar app.jar
 # Expose the port the application runs on
 EXPOSE 8090
 
-
-#ToDO : Make these as runtime args. Store and fetch from Azure KeyVault
-# Currently are fetched from GH action secrets
-ARG POSTGRES_URL
-ARG POSTGRES_USERNAME
-ARG POSTGRES_PASSWORD
-ARG REDIS_URL
-ARG REDIS_PASSWORD
-
-# Set environment variables in the container
-ENV POSTGRES_URL_VAL=$POSTGRES_URL
-ENV POSTGRES_USERNAME_VAL=$POSTGRES_USERNAME
-ENV POSTGRES_PASSWORD_VAL=$POSTGRES_PASSWORD
-ENV REDIS_URL_VAL=$REDIS_URL
-ENV REDIS_PASSWORD_VAL=$REDIS_PASSWORD
-
-# Entrypoint
-ENTRYPOINT java -Dspring.datasource.url="$POSTGRES_URL_VAL" -Dspring.datasource.username="$POSTGRES_USERNAME_VAL" -Dspring.datasource.password="$POSTGRES_PASSWORD_VAL" -Dspring.data.redis.host="$REDIS_URL_VAL" -Dspring.data.redis.password="$REDIS_PASSWORD_VAL" -jar ./app.jar
+# Entrypoint (note env variable for db & cache are injected by K8S)
+ENTRYPOINT java -jar ./app.jar

@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-ingress
+  namespace: default
+  annotations:
+    #nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+
+spec:
+  rules:
+  - host: demo.com # make sure you add this to /etc/hosts
+    http:
+      paths:
+      - path: /fido2/attestation/options
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-service # this should be the name of the service
+            port:
+              number: 7780
+      - path: /fido2/attestation/result
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-service # this should be the name of the service
+            port:
+              number: 7780
+      - path: /fido2/assertion/options
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-service # this should be the name of the service
+            port:
+              number: 7780
+      - path: /fido2/assertion/result
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-service # this should be the name of the service
+            port:
+              number: 7780
