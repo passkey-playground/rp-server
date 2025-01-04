@@ -12,7 +12,7 @@ public class CommonConstants {
     public static final int SESSION_ID_DEFAULT_LENGTH = 32;
     //public static final String DEFAULT_RP_ID="pp-signal-sdk-demo.netlify.app";
     //public static final String DEFAULT_RP_ID="www.sowmya.com";
-    public static final String DEFAULT_RP_ID="ravikanth-fidotesting.netlify.app";
+    //public static final String DEFAULT_RP_ID="ravikanth-fidotesting.netlify.app";
     public static final String DEFAULT_RP_ID="fidotesting-vercel.vercel.app";
     public static final long DEFAULT_TIMEOUT=20000;
 
