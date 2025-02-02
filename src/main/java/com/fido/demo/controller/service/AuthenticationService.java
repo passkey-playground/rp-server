@@ -23,7 +23,7 @@ public class AuthenticationService extends BaseService {
     @Autowired
     private AuthenticationUtils authenticationUtils;
 
-    public AuthnOptions getOptions(AuthnOptions request){
+    public AuthnOptions getOptions(AuthnOptions request, String rpId){
 
         // fetch the user
         UserEntity userEntity = userRepository.findByUsername(request.getUsername());
@@ -36,7 +36,9 @@ public class AuthenticationService extends BaseService {
                 .displayName(userEntity.getDisplayName())
                 .build();
 
-        RelyingPartyEntity rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
+        String relyingPartyId = rpId == null ? CommonConstants.DEFAULT_RP_ID : rpId;
+        RelyingPartyEntity rpEntity = rpRepository.findByRpId(
+                relyingPartyId);
         RP rp = RP.builder()
                 .origin(rpEntity.getOrigin())
                 .name(rpEntity.getName())
@@ -62,7 +64,6 @@ public class AuthenticationService extends BaseService {
                 .build();
         redisService.save(challenge, sessionBO);
 
-
         // build response
         AuthnOptions response = AuthnOptions.builder()
                 .allowedCreds(allowedCreds)
@@ -75,7 +76,7 @@ public class AuthenticationService extends BaseService {
         return response;
     }
 
-    public AuthnResponse authenticate(AuthnRequest request) {
+    public AuthnResponse authenticate(AuthnRequest request, String rpId) {
 
         // verify the assertion: ToDO: too much crammed into single function, break it down
         boolean isVerified = authenticationUtils.verifyAssertion(request.getResponse(), request.getId());

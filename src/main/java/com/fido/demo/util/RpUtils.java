@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,8 +119,13 @@ public class RpUtils {
         return authenticatorSelection;
     }
 
-    public CermonyBO getCermonyConfigs(){
-        RelyingPartyEntity rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
+    public CermonyBO getCermonyConfigs(String rpId){
+        RelyingPartyEntity rpEntity;
+        if(rpId == null || rpId.length() == 0){
+            rpEntity = rpRepository.findByRpId(rpId);
+        }else {
+            rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
+        }
 
         RP rp = RP.builder()
                 .id(rpEntity.getRpId())

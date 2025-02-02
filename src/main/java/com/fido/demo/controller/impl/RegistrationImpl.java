@@ -17,14 +17,16 @@ public class RegistrationImpl implements Registration {
     RegistrationService registrationService;
 
     @Override
-    public ResponseEntity<RegOptionsResponse> getOptions(RegOptionsRequest request) {
-        RegOptionsResponse regOptionsResponse = registrationService.getOptions(request);
+    public ResponseEntity<RegOptionsResponse> getOptions(RegOptionsRequest request,
+                                                         String rpId) {
+        RegOptionsResponse regOptionsResponse = registrationService.getOptions(request, rpId);
         return ResponseEntity.ok(regOptionsResponse);
     }
 
     @Override
-    public ResponseEntity<RegistrationResponse> verifyAttestation(RegistrationRequest request) {
-        RegistrationResponse regResponse = registrationService.register(request);
+    public ResponseEntity<RegistrationResponse> verifyAttestation(RegistrationRequest request,
+                                                                  String rpId) {
+        RegistrationResponse regResponse = registrationService.register(request, rpId);
         return ResponseEntity.ok(regResponse);
     }
 

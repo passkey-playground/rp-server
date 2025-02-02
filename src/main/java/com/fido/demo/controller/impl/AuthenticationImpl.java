@@ -16,14 +16,14 @@ public class AuthenticationImpl implements Authentication {
     AuthenticationService authenticationService;
 
     @Override
-    public ResponseEntity<AuthnOptions> getOptions(AuthnOptions request){
-        AuthnOptions response = authenticationService.getOptions(request);
+    public ResponseEntity<AuthnOptions> getOptions(AuthnOptions request, String rpId){
+        AuthnOptions response = authenticationService.getOptions(request, rpId);
         return ResponseEntity.ok(response);
     };
 
     @Override
-    public ResponseEntity<AuthnResponse> verifyAssertion(AuthnRequest request){
-        AuthnResponse response = authenticationService.authenticate(request);
+    public ResponseEntity<AuthnResponse> verifyAssertion(AuthnRequest request, String rpId){
+        AuthnResponse response = authenticationService.authenticate(request, rpId);
         return ResponseEntity.ok(response);
     };
 

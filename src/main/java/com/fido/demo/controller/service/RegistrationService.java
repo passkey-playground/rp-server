@@ -25,7 +25,7 @@ public class RegistrationService extends BaseService {
     @Autowired
     Registrationutils registrationutils;
 
-    public RegOptionsResponse getOptions(RegOptionsRequest request){
+    public RegOptionsResponse getOptions(RegOptionsRequest request, String rpId){
 
         /**
          * 1) create user
@@ -37,7 +37,7 @@ public class RegistrationService extends BaseService {
 
         User user = userUtils.getUser(request.getUserName(), request.getDisplayName());
 
-        CermonyBO cermonyBO = rpUtils.getCermonyConfigs();
+        CermonyBO cermonyBO = rpUtils.getCermonyConfigs(rpId);
 
         String challenge = cryptoUtil.getRandomBase64String();// challenge
 
@@ -62,8 +62,9 @@ public class RegistrationService extends BaseService {
         return  response;
     }
 
-    public RegistrationResponse register(RegistrationRequest request){
+    public RegistrationResponse register(RegistrationRequest request, String rpId){
 
+        // Question: is rpID needed ? it is already cached in the session
         ServerPublicKeyCredential.Response registrationResponse = request.getResponse();
 
         /**
