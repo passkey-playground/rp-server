@@ -122,9 +122,9 @@ public class RpUtils {
     public CermonyBO getCermonyConfigs(String rpId){
         RelyingPartyEntity rpEntity;
         if(rpId == null || rpId.length() == 0){
-            rpEntity = rpRepository.findByRpId(rpId);
-        }else {
             rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
+        }else {
+            rpEntity = rpRepository.findByRpId(rpId);
         }
 
         RP rp = RP.builder()
