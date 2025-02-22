@@ -67,7 +67,7 @@ public class AuthenticationService extends BaseService {
         // build response
         AuthnOptions response = AuthnOptions.builder()
                 .allowedCreds(allowedCreds)
-                .rpId(CommonConstants.DEFAULT_RP_ID)
+                .rpId(relyingPartyId)
                 .challenge(challenge)
                 .timeout(CommonConstants.DEFAULT_TIMEOUT)
                 .userVerification("true")
