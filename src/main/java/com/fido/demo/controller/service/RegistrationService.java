@@ -15,9 +15,7 @@ import com.webauthn4j.data.RegistrationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Objects;
+import java.util.*;
 
 @Service("registrationService")
 public class RegistrationService extends BaseService {
@@ -37,12 +35,15 @@ public class RegistrationService extends BaseService {
 
         User user = userUtils.getUser(request.getUserName(), request.getDisplayName());
 
-        CermonyBO cermonyBO = rpUtils.getCermonyConfigs(rpId);
+        List<Map<String,String>> credentials = userUtils.getUserCredentials(request.getUserName()) == null ? new ArrayList<>() : userUtils.getUserCredentials(request.getUserName());
+
+        CermonyBO cermonyBO = rpUtils.getCermonyConfigs(rpId, request);
 
         String challenge = cryptoUtil.getRandomBase64String();// challenge
 
         // save the state for subsequent calls
         SessionBO state = sessionUtils.persistAttestationState(user, challenge, cermonyBO);
+
 
         // response
         RegOptionsResponse response = RegOptionsResponse.builder()
@@ -52,10 +53,13 @@ public class RegistrationService extends BaseService {
                 .challenge(challenge)                                     /* challenge */
                 .pubKeyCredParams(cermonyBO.getPubKeyCredPams())                        /* pubKeyCredParams */
                 /*  Mandatory fields (end) */
-                .authenticatorSelection(cermonyBO.getAuthenticatorSelection())            /* authenticator selection */
-                .attestation(cermonyBO.getAttestation())                                  /* attestation */
+                //.authenticatorSelection(cermonyBO.getAuthenticatorSelection())            /* authenticator selection */
+                .authenticatorSelection(request.getAuthenticatorSelection())
+                .attestation(request.getAttestation())
+                //.attestation(cermonyBO.getAttestation())                                  /* attestation */
                 .timeout(cermonyBO.getTimeout())                                          /* timeout */
-                .excludeCredentials(new ArrayList<>())                     /* excludeCredentials : ToDo - fetch deactivated or deleted creds for the user and set here */
+                .excludeCredentials(credentials)                     /* excludeCredentials : ToDo - fetch deactivated or deleted creds for the user and set here */
+                .extensions(request.getExtensions())                                   /* extensions */
                 //.sessionId(sessionId)                                    /* sessionId */
                 .build();
 

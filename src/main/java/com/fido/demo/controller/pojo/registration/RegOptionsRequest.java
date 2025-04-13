@@ -5,6 +5,8 @@ import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Map;
+
 // Conformant API Spec
 @Data
 @Builder
@@ -21,4 +23,8 @@ public class RegOptionsRequest {
 
     @JsonProperty("attestation")
     private String attestation;
+
+    @JsonProperty("extensions")
+    private Map<String, Object> extensions;
+
 }

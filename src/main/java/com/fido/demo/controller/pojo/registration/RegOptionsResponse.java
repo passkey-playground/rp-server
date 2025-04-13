@@ -6,12 +6,15 @@ import com.fido.demo.controller.pojo.PubKeyCredParam;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.common.RP;
 import com.fido.demo.controller.pojo.common.User;
+import com.fido.demo.data.entity.CredentialEntity;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RegOptionsResponse {
 
     @JsonProperty(value = "status")
@@ -41,7 +44,7 @@ public class RegOptionsResponse {
     private String attestation;
 
     @JsonProperty("excludeCredentials") //ToDo : define a type here
-    private List<Object> excludeCredentials;
+    private List<Map<String,String>> excludeCredentials;
 
     /*------------ below fields are not needed ---------------------------*/
 
@@ -57,7 +60,7 @@ public class RegOptionsResponse {
     private String sessionId;
 
     @JsonProperty("extensions")
-    private Extensions extensions;
+    private Map<String, Object> extensions;
 
     @JsonProperty("serverResponse")
     private ServerResponse serverResponse;
@@ -112,6 +115,7 @@ public class RegOptionsResponse {
     }
 
 
+    /*
     public static class Extensions {
 
         @JsonProperty("credProps")
@@ -124,6 +128,6 @@ public class RegOptionsResponse {
         public void setCredProps(boolean credProps) {
             this.credProps = credProps;
         }
-    }
+    }*/
 
 }

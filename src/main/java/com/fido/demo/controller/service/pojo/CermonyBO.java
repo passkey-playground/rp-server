@@ -3,6 +3,7 @@ package com.fido.demo.controller.service.pojo;
 import com.fido.demo.controller.pojo.PubKeyCredParam;
 import com.fido.demo.controller.pojo.common.RP;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
+import com.fido.demo.data.entity.CredentialEntity;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,4 +23,6 @@ public class CermonyBO {
 
     List<PubKeyCredParam> pubKeyCredPams;
 
+    List<CredentialEntity> allowedCredentials;
+    List<CredentialEntity> excludeCredentials;
 }

@@ -3,6 +3,7 @@ package com.fido.demo.util;
 import com.fido.demo.controller.pojo.common.AuthenticatorSelection;
 import com.fido.demo.controller.pojo.PubKeyCredParam;
 import com.fido.demo.controller.pojo.common.RP;
+import com.fido.demo.controller.pojo.registration.RegOptionsRequest;
 import com.fido.demo.controller.service.pojo.CermonyBO;
 import com.fido.demo.data.entity.RPConfigEntity;
 import com.fido.demo.data.entity.RelyingPartyEntity;
@@ -91,7 +92,7 @@ public class RpUtils {
         return attestation.getSettingValue();
     }
 
-    public AuthenticatorSelection getAuthenticatorSelection(List<RPConfigEntity> rpConfigs){
+    public AuthenticatorSelection getAuthenticatorSelection(List<RPConfigEntity> rpConfigs, RegOptionsRequest request){
         /*
         * setting_name
         * require_user_verification
@@ -112,14 +113,27 @@ public class RpUtils {
                                                     .findFirst().orElse(null);
 
         AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection();
-        authenticatorSelection.setUserVerification(userVerificationConfig == null ? CommonConstants.USER_VERIFICATINO_PREFERRED_STRING : userVerificationConfig.getSettingValue()); // ToDo : move to constants
-        authenticatorSelection.setRequireResidentKey(requireResidentKey == null ? false : Boolean.valueOf(requireResidentKey.getSettingValue()));
-        authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? CommonConstants.AUTHN_ATTACHMENT_PLATFORM_STRING : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
+
+        AuthenticatorSelection authntrSelection = request.getAuthenticatorSelection();
+        if(authntrSelection != null && authntrSelection.getAuthenticatorAttachment() != null){
+            authenticatorSelection.setAuthenticatorAttachment(authntrSelection.getAuthenticatorAttachment());
+        }
+        if(authntrSelection != null && authntrSelection.getUserVerification() != null){
+            authenticatorSelection.setUserVerification(authntrSelection.getUserVerification());
+        }
+        if(authntrSelection != null && authntrSelection.isRequireResidentKey()){
+            authenticatorSelection.setRequireResidentKey(authntrSelection.isRequireResidentKey());
+        }
+
+//        authenticatorSelection.setUserVerification(userVerificationConfig == null ? CommonConstants.USER_VERIFICATINO_PREFERRED_STRING : userVerificationConfig.getSettingValue()); // ToDo : move to constants
+//        authenticatorSelection.setUserVerification(userVerificationConfig == null ? CommonConstants.USER_VERIFICATINO_PREFERRED_STRING : userVerificationConfig.getSettingValue()); // ToDo : move to constants
+//        authenticatorSelection.setRequireResidentKey(requireResidentKey == null ? false : Boolean.valueOf(requireResidentKey.getSettingValue()));
+//        authenticatorSelection.setAuthenticatorAttachment(authenticatorAttachment == null ? CommonConstants.AUTHN_ATTACHMENT_PLATFORM_STRING : authenticatorAttachment.getSettingValue()); // ToDo : reconsider the default value and move to constants
 
         return authenticatorSelection;
     }
 
-    public CermonyBO getCermonyConfigs(String rpId){
+    public CermonyBO getCermonyConfigs(String rpId, RegOptionsRequest request){
         RelyingPartyEntity rpEntity;
         if(rpId == null || rpId.length() == 0){
             rpEntity = rpRepository.findByRpId(CommonConstants.DEFAULT_RP_ID);
@@ -138,7 +152,7 @@ public class RpUtils {
             //ToDO: retrun default values
         }
 
-        AuthenticatorSelection authenticatorSelection = this.getAuthenticatorSelection(rpConfigs);
+        AuthenticatorSelection authenticatorSelection = this.getAuthenticatorSelection(rpConfigs, request);
         String attestation = this.getAttestation(rpConfigs);
 
         List<PubKeyCredParam> pubKeyCredParam = this.getPubKeyCredParam(rpConfigs);
