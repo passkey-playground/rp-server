@@ -24,4 +24,14 @@ public class Base64Utils {
         return  bytes;
     }
 
+    public boolean isValidBase64(String input) {
+        try {
+            // Decode and re-encode to see if it matches
+            byte[] decoded = Base64.getDecoder().decode(input);
+            String reEncoded = Base64.getEncoder().encodeToString(decoded);
+            return reEncoded.equals(input.replaceAll("\r\n", "").replaceAll("\n", ""));
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 }

@@ -23,6 +23,10 @@ public class RegistrationService extends BaseService {
     @Autowired
     Registrationutils registrationutils;
 
+    @Autowired
+    Base64Utils base64Utils;
+
+
     public RegOptionsResponse getOptions(RegOptionsRequest request, String rpId){
 
         /**
@@ -68,6 +72,9 @@ public class RegistrationService extends BaseService {
 
     public RegistrationResponse register(RegistrationRequest request, String rpId){
 
+        if(request.getId() == null || request.getId().isEmpty() || base64Utils.isValidBase64(request.getId())){
+            throw new IllegalArgumentException("Registration request must have an ID");
+        }
         // Question: is rpID needed ? it is already cached in the session
         ServerPublicKeyCredential.Response registrationResponse = request.getResponse();
 

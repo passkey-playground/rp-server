@@ -18,7 +18,9 @@ import org.springframework.core.env.Environment;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -35,6 +37,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ApiError error = new ApiError(HttpStatus.NOT_FOUND, "Resource Not Found", details);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
+
 
     // Handle generic exceptions
     @ExceptionHandler(Exception.class)
@@ -67,4 +70,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Validation Failed", errors);
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
+
 }

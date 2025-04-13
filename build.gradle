@@ -25,6 +25,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.data:spring-data-rest-webmvc:4.3.4'
 	implementation 'org.hibernate:hibernate-core:6.2.6.Final'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'javax.validation:validation-api:2.0.1.Final'
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 	runtimeOnly 'org.postgresql:postgresql'
 

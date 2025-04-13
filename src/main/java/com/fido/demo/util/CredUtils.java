@@ -90,7 +90,8 @@ public class CredUtils {
          */
         CredentialEntity credentialEntity = CredentialEntity.builder()
                 .username(username)
-                .externalId(credentialId)
+                //.externalId(credentialId)
+                .externalId(credentialRawId)
                 .externalIdRaw(credentialRawId)
                 .authenticatorData(authenticatorDataBytea)
                 .attestationStatement(attStmtBytea)

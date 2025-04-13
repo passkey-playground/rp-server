@@ -6,6 +6,7 @@ import com.fido.demo.controller.pojo.registration.RegistrationResponse;
 import com.fido.demo.controller.pojo.registration.RegistrationRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
 
 
 /**
@@ -22,6 +23,6 @@ public interface Registration {
     @RequestHeader(name = "rp_id", required = false) String rpId) ;
 
     @PostMapping(value = {"/registration/result", "/attestation/result"})
-    ResponseEntity<RegistrationResponse> verifyAttestation(@RequestBody RegistrationRequest request,
+    ResponseEntity<RegistrationResponse> verifyAttestation(@Valid @RequestBody RegistrationRequest request,
     @RequestHeader(value = "rp_id", required = false) String rpId);
 }
