@@ -4,10 +4,12 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.regex.Pattern;
 
 @Component
 public class Base64Utils {
 
+    private static final Pattern BASE64URL_PATTERN = Pattern.compile("^[A-Za-z0-9_-]*$");
 
     public byte[] decodeURLAsBytes(String input) {
         byte[] bytes = Base64.getUrlDecoder().decode(input);
@@ -24,14 +26,27 @@ public class Base64Utils {
         return  bytes;
     }
 
-    public boolean isValidBase64(String input) {
+    public byte[] validateAndDecodeCredentialId(String credentialId) {
+        // Check if ID is null or empty
+        if (credentialId == null) {
+            throw new IllegalArgumentException("Credential ID cannot be null");
+        }
+
+        if (credentialId.isEmpty()) {
+            throw new IllegalArgumentException("Credential ID cannot be empty");
+        }
+
+        // Validate that it contains only base64url characters
+        if (!BASE64URL_PATTERN.matcher(credentialId).matches()) {
+            throw new IllegalArgumentException("Credential ID contains invalid characters, must be base64url encoded");
+        }
+
+        // Decode the base64url string to get the raw credential ID bytes
         try {
-            // Decode and re-encode to see if it matches
-            byte[] decoded = Base64.getDecoder().decode(input);
-            String reEncoded = Base64.getEncoder().encodeToString(decoded);
-            return reEncoded.equals(input.replaceAll("\r\n", "").replaceAll("\n", ""));
+            // Use Base64.getUrlDecoder() for base64url decoding
+            return Base64.getUrlDecoder().decode(credentialId);
         } catch (IllegalArgumentException e) {
-            return false;
+            throw new IllegalArgumentException("Credential ID is not valid base64url: " + e.getMessage(), e);
         }
     }
 }
