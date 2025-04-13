@@ -73,8 +73,12 @@ public class RegistrationService extends BaseService {
     public RegistrationResponse register(RegistrationRequest request, String rpId){
 
         if(request.getId() == null || request.getId().isEmpty()
-                || base64Utils.validateAndDecodeCredentialId(request.getId()) != null){
+                || base64Utils.validateAndDecodeCredentialId(request.getId()) == null){
             throw new IllegalArgumentException("Registration request must have an ID");
+        }
+
+        if(request.getType() == null || request.getType().isEmpty() || !request.getType().equals("public-key")){
+            throw new IllegalArgumentException("Registration request must have a type of public-key");
         }
         // Question: is rpID needed ? it is already cached in the session
         ServerPublicKeyCredential.Response registrationResponse = request.getResponse();

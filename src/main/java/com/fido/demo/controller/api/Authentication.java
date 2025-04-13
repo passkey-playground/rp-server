@@ -12,9 +12,9 @@ public interface Authentication {
 
     @PostMapping(value = {"/assertion/options", "/authentication/options"})
     ResponseEntity<AuthnOptions> getOptions(@RequestBody AuthnOptions request,
-                                            @RequestHeader("rp_id") String rpId);
+                                            @RequestHeader(name = "rp_id", required = false) String rpId);
 
     @PostMapping(value = {"/assertion/result", "/authentication"})
     ResponseEntity<AuthnResponse> verifyAssertion(@RequestBody AuthnRequest request,
-                                                  @RequestHeader("rp_id") String rpId);
+                                                  @RequestHeader(name = "rp_id", required = false) String rpId);
 }
