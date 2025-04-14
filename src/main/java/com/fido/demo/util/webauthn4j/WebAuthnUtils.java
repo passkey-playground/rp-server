@@ -16,12 +16,14 @@ import com.webauthn4j.verifier.attestation.statement.androidsafetynet.NullAndroi
 import com.webauthn4j.verifier.attestation.statement.apple.NullAppleAnonymousAttestationStatementVerifier;
 import com.webauthn4j.verifier.attestation.statement.none.NoneAttestationStatementVerifier;
 import com.webauthn4j.verifier.attestation.statement.packed.NullPackedAttestationStatementVerifier;
+import com.webauthn4j.verifier.attestation.statement.packed.PackedAttestationStatementVerifier;
 import com.webauthn4j.verifier.attestation.statement.tpm.NullTPMAttestationStatementVerifier;
 import com.webauthn4j.verifier.attestation.statement.u2f.NullFIDOU2FAttestationStatementVerifier;
 import com.webauthn4j.verifier.attestation.trustworthiness.certpath.CertPathTrustworthinessVerifier;
 import com.webauthn4j.verifier.attestation.trustworthiness.certpath.DefaultCertPathTrustworthinessVerifier;
 import com.webauthn4j.verifier.attestation.trustworthiness.certpath.NullCertPathTrustworthinessVerifier;
 import com.webauthn4j.verifier.attestation.trustworthiness.self.NullSelfAttestationTrustworthinessVerifier;
+import com.webauthn4j.verifier.attestation.trustworthiness.self.SelfAttestationTrustworthinessVerifier;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,16 +49,16 @@ public class WebAuthnUtils {
                 Arrays.asList(
                         new NoneAttestationStatementVerifier(),
                         new NullFIDOU2FAttestationStatementVerifier(),
-                        new NullPackedAttestationStatementVerifier(),
+                        new PackedAttestationStatementVerifier(),
+                        //new NullPackedAttestationStatementVerifier(),
                         new NullTPMAttestationStatementVerifier(),
                         new NullAndroidKeyAttestationStatementVerifier(),
                         new NullAndroidSafetyNetAttestationStatementVerifier(),
                         new NullAppleAnonymousAttestationStatementVerifier()
                 ),
-                trustworthinessVerifier,
-                //new NullCertPathTrustworthinessVerifier(),
+                //trustworthinessVerifier,
+                new NullCertPathTrustworthinessVerifier(),
                 new NullSelfAttestationTrustworthinessVerifier()
-
         );
     }
 

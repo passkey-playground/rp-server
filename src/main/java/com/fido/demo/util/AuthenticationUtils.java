@@ -33,7 +33,8 @@ public class AuthenticationUtils {
     @Autowired
     private CredUtils credUtils;
 
-    public boolean verifyAssertion(ServerPublicKeyCredential.Response response, String credentialId){
+    public boolean verifyAssertion(ServerPublicKeyCredential.Response response, String credentialId,
+                                   ServerPublicKeyCredential.Extensions extensions) {
         List<CredentialEntity> credentialEntities = credentialRepository.findByExternalId(credentialId);
         CredentialEntity credential = credentialEntities.get(0);
 
@@ -42,7 +43,7 @@ public class AuthenticationUtils {
 
         byte[] authenticatorData = Base64.getUrlDecoder().decode(response.getAuthenticatorData()); /* set attestationObject */
         byte[] clientDataJSON = Base64.getDecoder().decode(response.getClientDataJSON()); /* set clientDataJSON */;
-        String clientExtensionJSON = null;  /* set clientExtensionJSON */;
+        String clientExtensionJSON = String.valueOf(extensions);  /* set clientExtensionJSON */;
         String sanitizedSignature = response.getSignature().replace("_", "/").replace('-', '+');
         while (sanitizedSignature.length() % 4 != 0) {
                 sanitizedSignature += "=";

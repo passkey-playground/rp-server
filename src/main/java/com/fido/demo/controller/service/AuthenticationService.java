@@ -4,6 +4,7 @@ import com.fido.demo.controller.pojo.authentication.AuthnOptions;
 import com.fido.demo.controller.pojo.authentication.AuthnRequest;
 import com.fido.demo.controller.pojo.authentication.AuthnResponse;
 import com.fido.demo.controller.pojo.common.RP;
+import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.User;
 import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.CredentialEntity;
@@ -79,7 +80,7 @@ public class AuthenticationService extends BaseService {
     public AuthnResponse authenticate(AuthnRequest request, String rpId) {
 
         // verify the assertion: ToDO: too much crammed into single function, break it down
-        boolean isVerified = authenticationUtils.verifyAssertion(request.getResponse(), request.getId());
+        boolean isVerified = authenticationUtils.verifyAssertion(request.getResponse(), request.getId(), request.getServerPublicKeyCredential().getExtensions());
 
         // construct webauthn mnager and verify the authentication
         if(isVerified) {
