@@ -1,11 +1,15 @@
 package com.fido.demo.util.webauthn4j;
 
+import com.webauthn4j.WebAuthnManager;
 import com.webauthn4j.WebAuthnRegistrationManager;
 import com.webauthn4j.anchor.TrustAnchorRepository;
 import com.webauthn4j.converter.util.ObjectConverter;
 import com.webauthn4j.data.RegistrationData;
 import com.webauthn4j.data.RegistrationParameters;
 import com.webauthn4j.data.RegistrationRequest;
+import com.webauthn4j.data.attestation.AttestationObject;
+import com.webauthn4j.data.attestation.statement.AttestationStatement;
+import com.webauthn4j.data.attestation.statement.PackedAttestationStatement;
 import com.webauthn4j.metadata.FidoMDS3MetadataBLOBProvider;
 import com.webauthn4j.metadata.LocalFileMetadataBLOBProvider;
 import com.webauthn4j.metadata.MetadataBLOBBasedMetadataStatementRepository;
@@ -36,15 +40,11 @@ public class WebAuthnUtils {
 
     private WebAuthnRegistrationManager registrationManager;
 
+    private WebAuthnRegistrationManager fullRegistrationManager;
+
     @PostConstruct
     void postConstruct(){
         //registrationManager = WebAuthnRegistrationManager.createNonStrictWebAuthnRegistrationManager();
-
-        ObjectConverter objectConverter = new ObjectConverter();
-        File metadataBLOBFile = new File("src/main/resources/blob.jwt");
-        MetadataBLOBProvider blobProvider = new LocalFileMetadataBLOBProvider(objectConverter, metadataBLOBFile.toPath());
-        TrustAnchorRepository trustAnchorRepository = new MetadataBLOBBasedTrustAnchorRepository(blobProvider);
-        CertPathTrustworthinessVerifier trustworthinessVerifier = new DefaultCertPathTrustworthinessVerifier(trustAnchorRepository);
         registrationManager = new WebAuthnRegistrationManager(
                 Arrays.asList(
                         new NoneAttestationStatementVerifier(),
@@ -60,6 +60,30 @@ public class WebAuthnUtils {
                 new NullCertPathTrustworthinessVerifier(),
                 new NullSelfAttestationTrustworthinessVerifier()
         );
+
+        ObjectConverter objectConverter = new ObjectConverter();
+        File metadataBLOBFile = new File("src/main/resources/blob.jwt");
+        MetadataBLOBProvider blobProvider = new LocalFileMetadataBLOBProvider(objectConverter, metadataBLOBFile.toPath());
+        TrustAnchorRepository trustAnchorRepository = new MetadataBLOBBasedTrustAnchorRepository(blobProvider);
+        CertPathTrustworthinessVerifier trustworthinessVerifier = new DefaultCertPathTrustworthinessVerifier(trustAnchorRepository);
+
+
+        fullRegistrationManager =new WebAuthnRegistrationManager(
+                Arrays.asList(
+                        new NoneAttestationStatementVerifier(),
+                        new NullFIDOU2FAttestationStatementVerifier(),
+                        //new PackedAttestationStatementVerifier(),
+                        new NullPackedAttestationStatementVerifier(),
+                        new NullTPMAttestationStatementVerifier(),
+                        new NullAndroidKeyAttestationStatementVerifier(),
+                        new NullAndroidSafetyNetAttestationStatementVerifier(),
+                        new NullAppleAnonymousAttestationStatementVerifier()
+                ),
+                trustworthinessVerifier,
+                //new NullCertPathTrustworthinessVerifier(),
+                new NullSelfAttestationTrustworthinessVerifier()
+        );
+
     }
 
     public RegistrationData parse(RegistrationRequest request){
@@ -67,6 +91,26 @@ public class WebAuthnUtils {
     }
 
     public RegistrationData verify(RegistrationData data, RegistrationParameters parameters){
+        AttestationObject attestationObject = data.getAttestationObject();
+        AttestationStatement attStmt = attestationObject.getAttestationStatement();
+
+        // Check the attestation format is "packed"
+        if ("packed".equals(attestationObject.getFormat())) {
+
+            PackedAttestationStatement packedStmt = (PackedAttestationStatement) attStmt;
+
+            if (packedStmt.getX5c() != null && !packedStmt.getX5c().isEmpty()) {
+                // FULL attestation (has certificate chain)
+                System.out.println("FULL packed attestation detected");
+                return fullRegistrationManager.verify(data, parameters);
+                // You can add custom validation or logging here
+            } else {
+                // SELF attestation (no x5c present)
+                System.out.println("SELF packed attestation detected");
+                // Optionally allow or deny based on your policy
+            }
+
+        }
         return registrationManager.verify(data, parameters);
     }
 }
