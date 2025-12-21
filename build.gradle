@@ -49,3 +49,9 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootRun {
+	if (project.hasProperty('profile')) {
+		systemProperty 'spring.profiles.active', project.profile
+	}
+}
