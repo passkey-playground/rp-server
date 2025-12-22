@@ -1,6 +1,7 @@
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
---DROP TABLE RELYING_PARTIES;
-CREATE TABLE RELYING_PARTIES (
+-- Enable UUID extension for uuid_generate_v4() function
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS RELYING_PARTIES (
     --id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),  -- Time-based UUID
     id BIGSERIAL PRIMARY KEY,
     external_id VARCHAR(255) UNIQUE NOT NULL, -- passed by clients in the requests
@@ -14,7 +15,7 @@ CREATE TABLE RELYING_PARTIES (
 
 
 -- Table: RP_CONFIGURATIONS
-CREATE TABLE RELYING_PARTY_CONFIGS (
+CREATE TABLE IF NOT EXISTS RELYING_PARTY_CONFIGS (
     id BIGSERIAL PRIMARY KEY,
     rp_id BIGSERIAL REFERENCES RELYING_PARTIES(id) ON DELETE CASCADE,
     setting_key VARCHAR(255) NOT NULL,
@@ -25,7 +26,7 @@ CREATE TABLE RELYING_PARTY_CONFIGS (
 
 -- Table: USERS
 --DROP TABLE USERS;
-CREATE TABLE USERS (
+CREATE TABLE IF NOT EXISTS USERS (
     id BIGSERIAL PRIMARY KEY,
     external_id VARCHAR(255) UNIQUE  NOT NULL, -- passed by clients in the requests
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -37,7 +38,7 @@ CREATE TABLE USERS (
 
 -- Table: sessions
 --DROP TABLE SESSIONS;
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGSERIAL REFERENCES users(id) ON DELETE CASCADE,
     session_token UUID UNIQUE NOT NULL DEFAULT uuid_generate_v4(),
@@ -48,7 +49,7 @@ CREATE TABLE sessions (
 
 
 -- Table: authenticators
-CREATE TABLE authenticators (
+CREATE TABLE IF NOT EXISTS authenticators (
     id BIGSERIAL PRIMARY KEY,
     aaguid UUID,
     device_type VARCHAR(50),
@@ -62,7 +63,7 @@ CREATE TABLE authenticators (
 
 
 -- Table: credentials (not in use)
-CREATE TABLE CREDENTIALS (
+CREATE TABLE IF NOT EXISTS CREDENTIALS (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGSERIAL REFERENCES USERS(id) ON DELETE CASCADE,
     rp_id BIGSERIAL REFERENCES RELYING_PARTIES(id) ON DELETE CASCADE,
@@ -77,7 +78,7 @@ CREATE TABLE CREDENTIALS (
 );
 
 -- Table Credentials (currently this is the table used)
-CREATE TABLE CREDENTIALS2 (
+CREATE TABLE IF NOT EXISTS CREDENTIALS2 (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES USERS(id) ON DELETE CASCADE,
     rp_id INTEGER REFERENCES relying_parties(id) ON DELETE CASCADE,
@@ -94,8 +95,8 @@ CREATE TABLE CREDENTIALS2 (
 
 
 -- Indexes (one multicolumn index on rp_id & user_id) and single column on user_id
-CREATE INDEX idx_credentials_rp_id ON credentials(rp_id, user_id);
-CREATE INDEX idx_credentials_user_id ON credentials(user_id);
+CREATE INDEX IF NOT EXISTS idx_credentials_rp_id ON credentials(rp_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_credentials_user_id ON credentials(user_id);
 
 
 -- Table: credential_configs
