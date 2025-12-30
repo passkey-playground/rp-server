@@ -1,0 +1,24 @@
+app = "demo-redis"
+primary_region = "ord"
+
+[build]
+image = "redis:7-alpine"
+
+[processes]
+app = "redis-server --appendonly yes --dir /data"
+
+[[mounts]]
+source = "redis_data"
+destination = "/data"
+
+[[services]]
+protocol = "tcp"
+internal_port = 6379
+
+[[services.ports]]
+port = 6379
+
+[[vm]]
+memory = "512mb"
+cpu_kind = "shared"
+cpus = 1
