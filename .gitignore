@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### Env Files ###
-.env
+scripts/storage/.env
