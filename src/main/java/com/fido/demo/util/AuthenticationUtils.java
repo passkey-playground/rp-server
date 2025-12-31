@@ -43,7 +43,14 @@ public class AuthenticationUtils {
 
         byte[] authenticatorData = Base64.getUrlDecoder().decode(response.getAuthenticatorData()); /* set attestationObject */
         byte[] clientDataJSON = Base64.getDecoder().decode(response.getClientDataJSON()); /* set clientDataJSON */;
-        String clientExtensionJSON = String.valueOf(extensions);  /* set clientExtensionJSON */;
+        //String clientExtensionJSON = String.valueOf(extensions);  /* set clientExtensionJSON */;
+        String clientExtensionJSON = null;
+        try {
+            clientExtensionJSON = extensions != null ? new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(extensions) : "{}";
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         String sanitizedSignature = response.getSignature().replace("_", "/").replace('-', '+');
         while (sanitizedSignature.length() % 4 != 0) {
                 sanitizedSignature += "=";
