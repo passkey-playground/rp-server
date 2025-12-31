@@ -38,3 +38,7 @@ out/
 
 ### Env Files ###
 scripts/storage/.env
+
+# local https cert and key files
+src/main/resources/ssl/*.key
+src/main/resources/ssl/*.crt
