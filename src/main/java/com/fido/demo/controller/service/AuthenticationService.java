@@ -6,6 +6,7 @@ import com.fido.demo.controller.pojo.authentication.AuthnResponse;
 import com.fido.demo.controller.pojo.common.RP;
 import com.fido.demo.controller.pojo.common.ServerPublicKeyCredential;
 import com.fido.demo.controller.pojo.common.User;
+import com.fido.demo.controller.pojo.authentication.PasskeySummary;
 import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.CredentialEntity;
 import com.fido.demo.data.entity.RelyingPartyEntity;
@@ -25,29 +26,34 @@ public class AuthenticationService extends BaseService {
     private AuthenticationUtils authenticationUtils;
 
     public AuthnOptions getOptions(AuthnOptions request, String rpId){
-
-        // fetch the user
-        UserEntity userEntity = userRepository.findByUsername(request.getUsername());
-        if(userEntity == null){
-            throw new RuntimeException("User not found");
-        }
-        User user = User.builder()
-                .name(userEntity.getUsername())
-                .id(userEntity.getUserId())
-                .displayName(userEntity.getDisplayName())
-                .build();
-
         String relyingPartyId = rpId == null ? CommonConstants.DEFAULT_RP_ID : rpId;
         RelyingPartyEntity rpEntity = rpRepository.findByRpId(
                 relyingPartyId);
+        if (rpEntity == null) {
+            throw new RuntimeException("Relying party not found");
+        }
         RP rp = RP.builder()
                 .origin(rpEntity.getOrigin())
                 .name(rpEntity.getName())
                 .id(rpEntity.getRpId())
                 .build();
 
-        // fetch credentials
-        List<CredentialEntity> allowedCredentials = credentialRepository.findByUsername(userEntity.getUsername());
+        User user = null;
+        List<CredentialEntity> allowedCredentials;
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            UserEntity userEntity = userRepository.findByUsername(request.getUsername());
+            if (userEntity == null) {
+                throw new RuntimeException("User not found");
+            }
+            user = User.builder()
+                    .name(userEntity.getUsername())
+                    .id(userEntity.getUserId())
+                    .displayName(userEntity.getDisplayName())
+                    .build();
+            allowedCredentials = credentialRepository.findByUsername(userEntity.getUsername());
+        } else {
+            allowedCredentials = credentialRepository.findByRpId(rpEntity.getId());
+        }
         List<Map<String,String>> allowedCreds = allowedCredentials.stream()
                 .map(item-> {
                     Map<String,String> map = new HashMap<>();
@@ -55,6 +61,12 @@ public class AuthenticationService extends BaseService {
                     map.put("type", "public-key");
                     return map;
                 }).toList();
+        List<PasskeySummary> registeredPasskeys = allowedCredentials.stream()
+                .map(item -> PasskeySummary.builder()
+                        .username(item.getUsername())
+                        .credentialId(item.getExternalIdRaw())
+                        .build())
+                .toList();
 
         // persist the session
         String challenge = cryptoUtil.getRandomBase64String();
@@ -71,7 +83,10 @@ public class AuthenticationService extends BaseService {
                 .rpId(relyingPartyId)
                 .challenge(challenge)
                 .timeout(CommonConstants.DEFAULT_TIMEOUT)
-                .userVerification("true")
+                .userVerification(request.getUserVerification() == null || request.getUserVerification().isBlank()
+                        ? "preferred"
+                        : request.getUserVerification())
+                .registeredPasskeys(registeredPasskeys)
                 .build();
 
         return response;

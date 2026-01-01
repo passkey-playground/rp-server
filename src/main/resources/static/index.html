@@ -19,7 +19,7 @@
         <ul>
           <li>Works on HTTPS only.</li>
           <li>Use a modern browser with WebAuthn support (e.g., Chrome, Edge, Firefox).</li>
-          <li>Keep the same username for register + authenticate/verify.</li>
+          <li>Authentication uses the RP ID to discover passkeys.</li>
         </ul>
       </div>
     </header>
@@ -87,10 +87,6 @@
       <h2>Authentication (Assertion)</h2>
       <div class="grid">
         <label>
-          Username
-          <input id="auth-username" type="text" placeholder="jane.doe" />
-        </label>
-        <label>
           RP ID header (optional)
           <input id="auth-rpid" type="text" placeholder="holy-sole-equipped.ngrok-free.app" />
         </label>
@@ -102,6 +98,10 @@
             <option value="discouraged">Discouraged</option>
           </select>
         </label>
+      </div>
+      <div class="passkey-list">
+        <p class="passkey-heading">Registered passkeys for this RP</p>
+        <ul id="passkey-list"></ul>
       </div>
       <div class="actions">
         <button id="authenticate-btn" class="primary">Verify Passkey</button>

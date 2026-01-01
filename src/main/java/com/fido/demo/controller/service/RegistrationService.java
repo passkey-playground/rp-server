@@ -9,6 +9,7 @@ import com.fido.demo.controller.pojo.registration.RegistrationRequest;
 import com.fido.demo.controller.service.pojo.CermonyBO;
 import com.fido.demo.controller.service.pojo.SessionBO;
 import com.fido.demo.data.entity.CredentialEntity;
+import com.fido.demo.data.entity.RelyingPartyEntity;
 import com.fido.demo.util.*;
 import com.webauthn4j.credential.CredentialRecordImpl;
 import com.webauthn4j.data.RegistrationData;
@@ -115,12 +116,18 @@ public class RegistrationService extends BaseService {
 
         // 4) serialize and persist: user & credential records
         User user = registrationutils.saveUser(registrationData);
+        RelyingPartyEntity rpEntity = rpRepository.findByRpId(sessionBO.getRp().getId());
+        if (rpEntity == null) {
+            throw new RuntimeException("Relying party not found");
+        }
+
         CredentialEntity credentialEntity = credUtils.persistCredRecord(
                 credentialRecord,
                 registrationData,
                 request.getId(),
                 request.getRawId(),
-                user.getName());
+                user.getName(),
+                rpEntity.getId());
 
         // construct the response and return
         RegistrationResponse response = RegistrationResponse.builder().build();

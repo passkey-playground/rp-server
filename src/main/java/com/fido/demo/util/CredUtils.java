@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import static com.fido.demo.util.CommonConstants.*;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,8 @@ public class CredUtils {
                                               RegistrationData registrationData,
                                               String credentialId,
                                               String credentialRawId,
-                                              String username){
+                                              String username,
+                                              BigInteger rpId){
         /**
          * credential record has 4 main objects
          * 1) attestationobject
@@ -90,6 +92,7 @@ public class CredUtils {
          */
         CredentialEntity credentialEntity = CredentialEntity.builder()
                 .username(username)
+                .rpId(rpId)
                 //.externalId(credentialId)
                 .externalId(credentialRawId)
                 .externalIdRaw(credentialRawId)

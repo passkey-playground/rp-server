@@ -46,6 +46,8 @@ public class AuthnOptions {
     @JsonProperty("allowCredentials")
     private List<Map<String,String>> allowedCreds;
 
-}
+    @JsonProperty("registeredPasskeys")
+    private List<PasskeySummary> registeredPasskeys;
 
+}
 

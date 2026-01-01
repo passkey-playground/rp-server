@@ -126,6 +126,33 @@ select {
   margin-top: 18px;
 }
 
+.passkey-list {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--border);
+  background: #fff6ea;
+}
+
+.passkey-heading {
+  margin: 0 0 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+#passkey-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+#passkey-list li {
+  margin-bottom: 6px;
+}
+
 button {
   border: none;
   border-radius: 999px;

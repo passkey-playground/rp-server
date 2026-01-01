@@ -3,6 +3,7 @@ const $ = (selector) => document.querySelector(selector);
 const logEl = $("#log");
 const registerBtn = $("#register-btn");
 const authenticateBtn = $("#authenticate-btn");
+const passkeyListEl = $("#passkey-list");
 
 function log(message, level = "info") {
   const time = new Date().toLocaleTimeString();
@@ -94,6 +95,26 @@ function buildAuthenticatorSelection() {
   };
 }
 
+function renderPasskeyList(passkeys) {
+  passkeyListEl.innerHTML = "";
+
+  if (!passkeys || passkeys.length === 0) {
+    const item = document.createElement("li");
+    item.textContent = "No passkeys registered for this RP.";
+    passkeyListEl.appendChild(item);
+    return;
+  }
+
+  passkeys.forEach((passkey) => {
+    const item = document.createElement("li");
+    const label = passkey.username
+      ? `${passkey.username} — ${passkey.credentialId}`
+      : passkey.credentialId;
+    item.textContent = label;
+    passkeyListEl.appendChild(item);
+  });
+}
+
 async function handleRegister() {
   const username = $("#reg-username").value.trim();
   const displayName = $("#reg-displayname").value.trim();
@@ -170,14 +191,8 @@ async function handleRegister() {
 }
 
 async function handleAuthenticate() {
-  const username = $("#auth-username").value.trim();
   const rpId = $("#auth-rpid").value.trim();
   const userVerification = $("#auth-userverification").value;
-
-  if (!username) {
-    log("Authentication requires a username.", "error");
-    return;
-  }
 
   try {
     setBusy(authenticateBtn, true);
@@ -186,22 +201,16 @@ async function handleAuthenticate() {
     const options = await postJson(
       "/fido2/authentication/options",
       {
-        username,
         userVerification,
       },
       rpId
     );
-
-    const allowCredentials = options.allowCredentials || options.allowedCreds || [];
+    renderPasskeyList(options.registeredPasskeys || []);
 
     const publicKey = {
       challenge: base64UrlToBuffer(options.challenge),
       rpId: options.rpId,
       timeout: options.timeout,
-      allowCredentials: allowCredentials.map((cred) => ({
-        id: base64UrlToBuffer(cred.id),
-        type: cred.type || "public-key",
-      })),
       userVerification: userVerification || "preferred",
     };
 
