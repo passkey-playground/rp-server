@@ -1,0 +1,337 @@
+openapi: 3.0.3
+info:
+  title: RP Server API
+  version: 1.0.0
+  description: FIDO2/WebAuthn relying party endpoints for registration and authentication.
+servers:
+  - url: http://localhost:8090
+paths:
+  /fido2/registration/options:
+    post:
+      summary: Registration options (attestation)
+      parameters:
+        - $ref: '#/components/parameters/RpIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegOptionsRequest'
+            examples:
+              web:
+                value:
+                  username: jane.doe
+                  displayName: Jane Doe
+                  attestation: none
+                  authenticatorSelection:
+                    authenticatorAttachment: platform
+                    residentKey: preferred
+                    userVerification: preferred
+                    requireResidentKey: false
+                  extensions:
+                    credProps: true
+      responses:
+        '200':
+          description: Registration options
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegOptionsResponse'
+  /fido2/registration/result:
+    post:
+      summary: Registration result (attestation)
+      parameters:
+        - $ref: '#/components/parameters/RpIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+            examples:
+              web:
+                value:
+                  id: credential-id
+                  rawId: base64url-raw-id
+                  type: public-key
+                  response:
+                    attestationObject: base64url-attestation
+                    clientDataJSON: base64url-client-data
+                    transports:
+                      - internal
+      responses:
+        '200':
+          description: Registration response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
+  /fido2/authentication/options:
+    post:
+      summary: Authentication options (assertion)
+      parameters:
+        - $ref: '#/components/parameters/RpIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthnOptionsRequest'
+            examples:
+              web:
+                value:
+                  userVerification: preferred
+      responses:
+        '200':
+          description: Authentication options
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthnOptions'
+  /fido2/authentication:
+    post:
+      summary: Authentication result (assertion)
+      parameters:
+        - $ref: '#/components/parameters/RpIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthnRequest'
+            examples:
+              web:
+                value:
+                  id: credential-id
+                  type: public-key
+                  response:
+                    authenticatorData: base64url-authenticator-data
+                    clientDataJSON: base64-client-data
+                    signature: base64url-signature
+                    userHandle: base64url-user-handle
+                  serverPublicKeyCredential:
+                    extensions: {}
+      responses:
+        '200':
+          description: Authentication response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthnResponse'
+  /fido2/ui:
+    get:
+      summary: Passkey UI
+      responses:
+        '200':
+          description: Static UI
+          content:
+            text/html:
+              schema:
+                type: string
+components:
+  parameters:
+    RpIdHeader:
+      name: rp_id
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Override RP ID (default RP used if omitted).
+  schemas:
+    AuthenticatorSelection:
+      type: object
+      properties:
+        authenticatorAttachment:
+          type: string
+          example: platform
+        residentKey:
+          type: string
+          example: preferred
+        userVerification:
+          type: string
+          example: preferred
+        requireResidentKey:
+          type: boolean
+          example: false
+    RegOptionsRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        authenticatorSelection:
+          $ref: '#/components/schemas/AuthenticatorSelection'
+        attestation:
+          type: string
+        extensions:
+          type: object
+          additionalProperties: true
+      required:
+        - username
+        - displayName
+    RP:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        origin:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        displayName:
+          type: string
+    PubKeyCredParam:
+      type: object
+      properties:
+        type:
+          type: string
+        alg:
+          type: integer
+    RegOptionsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+        rp:
+          $ref: '#/components/schemas/RP'
+        user:
+          $ref: '#/components/schemas/User'
+        challenge:
+          type: string
+        pubKeyCredParams:
+          type: array
+          items:
+            $ref: '#/components/schemas/PubKeyCredParam'
+        authenticatorSelection:
+          $ref: '#/components/schemas/AuthenticatorSelection'
+        attestation:
+          type: string
+        excludeCredentials:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+        timeout:
+          type: integer
+        extensions:
+          type: object
+          additionalProperties: true
+    RegistrationRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        rawId:
+          type: string
+        type:
+          type: string
+        response:
+          $ref: '#/components/schemas/ServerPublicKeyCredentialResponse'
+      required:
+        - id
+        - type
+        - response
+    RegistrationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+    AuthnOptionsRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        userVerification:
+          type: string
+        rpId:
+          type: string
+        userId:
+          type: string
+    PasskeySummary:
+      type: object
+      properties:
+        username:
+          type: string
+        credentialId:
+          type: string
+    AuthnOptions:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+        rpId:
+          type: string
+        challenge:
+          type: string
+        timeout:
+          type: integer
+        userVerification:
+          type: string
+        allowCredentials:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+        registeredPasskeys:
+          type: array
+          items:
+            $ref: '#/components/schemas/PasskeySummary'
+    AuthnRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        response:
+          $ref: '#/components/schemas/ServerPublicKeyCredentialResponse'
+        serverPublicKeyCredential:
+          $ref: '#/components/schemas/ServerPublicKeyCredential'
+    AuthnResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        errorMessage:
+          type: string
+    ServerPublicKeyCredential:
+      type: object
+      properties:
+        extensions:
+          type: object
+          additionalProperties: true
+    ServerPublicKeyCredentialResponse:
+      type: object
+      properties:
+        clientDataJSON:
+          type: string
+        attestationObject:
+          type: string
+        authenticatorData:
+          type: string
+        publicKey:
+          type: string
+        transports:
+          type: array
+          items:
+            type: string
+        userHandle:
+          type: string
+        signature:
+          type: string

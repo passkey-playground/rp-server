@@ -23,6 +23,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 	implementation 'org.springframework.data:spring-data-rest-webmvc:4.3.4'
 	implementation 'org.hibernate:hibernate-core:6.2.6.Final'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'

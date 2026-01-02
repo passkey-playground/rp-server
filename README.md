@@ -2,6 +2,14 @@
 
 - Relying Party (RP) server implementation for FIDO2/WebAuthn passkeys using spring-boot and webauthn4j.
 
+## Docs (start here)
+- docs/README.md
+
+## Swagger UI + OpenAPI
+- Swagger UI: http://localhost:8090/swagger-ui.html
+- OpenAPI JSON: http://localhost:8090/v3/api-docs
+- Source spec: docs/openapi.yaml
+
 ## Requirements
 - Java 17
 - Postgres
@@ -19,9 +27,21 @@ This project is a Spring Boot app. Configure database and cache settings in
 A `Dockerfile` is included to run the app as a container. For Fly.io deployment,
 use the included `fly.toml` alongside the Dockerfile.
 
-##To Run locally
+## Runnable local stack (Postgres + Redis + rp-server)
 ```bash
-./gradlew bootRun
+cp .env.example .env
+docker compose up --build
+```
+
+## Local dev
+```bash
+make dev
+```
+
+## Test + lint
+```bash
+make test
+make lint
 ```
 
 ### Fly.io deployment
