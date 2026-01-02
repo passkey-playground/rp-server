@@ -9,12 +9,8 @@ import java.util.List;
 import java.math.BigInteger;
 
 @Repository
-public interface CredentialRepository extends JpaRepository<CredentialEntity, BigInteger> {
-    //List<CredentialEntityOld> findById(BigInteger id);
-    List<CredentialEntity> findByUserId(BigInteger userId);
-    List<CredentialEntity> findByUsername(String username);
-    List<CredentialEntity> findByRpId(BigInteger rpId);
-    List<CredentialEntity> findByExternalId(String externalId);
-    // List<CredentialEntity> findByRpIdAndUserId(BigInteger rpId, BigInteger userId);
-    //List<CredentialEntity>  findByAuthenticatorCredentialId(byte[] authenticatorCredentialId);
+public interface CredentialRepository extends JpaRepository<CredentialEntity, Integer> {
+    CredentialEntity findById(int id);
+    CredentialEntity findByUserId(int userId);
+    CredentialEntity findByRpAndUserId(int rpId, int userId);
 }

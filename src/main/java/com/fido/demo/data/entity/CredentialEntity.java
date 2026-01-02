@@ -58,6 +58,14 @@ public class CredentialEntity {
     @Column(name = "transports")
     private String transports;
 
+    @JoinColumn(name = "credential_id")
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<CredentialConfigEntity> configs;
+
+    @JoinColumn(name = "credential_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    private AuthenticatorEntity authenticator;
+
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;

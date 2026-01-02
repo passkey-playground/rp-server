@@ -32,6 +32,9 @@ public class AuthenticatorEntity {
     @Column(name = "aaguid")
     private UUID aaguid;
 
+    @Column(name = "credential_id")
+    private int credentialid;
+
     @Column(name = "device_type")
     private String deviceType;
 
