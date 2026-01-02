@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Passkey Test Client</title>
+  <link rel="stylesheet" href="/passkey.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">RP Server</p>
+        <h1>Passkey Test Client</h1>
+        <p class="subhead">Register and verify passkeys against the local FIDO2 endpoints.</p>
+      </div>
+      <div class="hero-card">
+        <h2>Quick Notes</h2>
+        <ul>
+          <li>Works on HTTPS only.</li>
+          <li>Use a modern browser with WebAuthn support (e.g., Chrome, Edge, Firefox).</li>
+          <li>Authentication uses the RP ID to discover passkeys.</li>
+        </ul>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Registration (Attestation)</h2>
+      <div class="grid">
+        <label>
+          Username
+          <input id="reg-username" type="text" placeholder="jane.doe" />
+        </label>
+        <label>
+          Display name
+          <input id="reg-displayname" type="text" placeholder="Jane Doe" />
+        </label>
+        <label>
+          RP ID header (optional)
+          <input id="reg-rpid" type="text" placeholder="holy-sole-equipped.ngrok-free.app" />
+        </label>
+        <label>
+          Attestation
+          <select id="reg-attestation">
+            <option value="none">None</option>
+            <option value="direct">Direct</option>
+            <option value="indirect">Indirect</option>
+          </select>
+        </label>
+        <label>
+          Authenticator attachment
+          <select id="reg-attachment">
+            <option value="">Any</option>
+            <option value="platform">Platform</option>
+            <option value="cross-platform">Cross-platform</option>
+          </select>
+        </label>
+        <label>
+          Resident key
+          <select id="reg-residentkey">
+            <option value="">Default</option>
+            <option value="discouraged">Discouraged</option>
+            <option value="preferred">Preferred</option>
+            <option value="required">Required</option>
+          </select>
+        </label>
+        <label>
+          User verification
+          <select id="reg-userverification">
+            <option value="">Default</option>
+            <option value="required">Required</option>
+            <option value="preferred">Preferred</option>
+            <option value="discouraged">Discouraged</option>
+          </select>
+        </label>
+        <label class="toggle">
+          <input id="reg-require-rk" type="checkbox" />
+          Require resident key
+        </label>
+      </div>
+      <div class="actions">
+        <button id="register-btn" class="primary">Create Passkey</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Authentication (Assertion)</h2>
+      <div class="grid">
+        <label>
+          RP ID header (optional)
+          <input id="auth-rpid" type="text" placeholder="holy-sole-equipped.ngrok-free.app" />
+        </label>
+        <label>
+          User verification
+          <select id="auth-userverification">
+            <option value="preferred">Preferred</option>
+            <option value="required">Required</option>
+            <option value="discouraged">Discouraged</option>
+          </select>
+        </label>
+      </div>
+      <div class="passkey-list">
+        <p class="passkey-heading">Registered passkeys for this RP</p>
+        <ul id="passkey-list"></ul>
+      </div>
+      <div class="actions">
+        <button id="authenticate-btn" class="primary">Verify Passkey</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Activity</h2>
+      <pre id="log" aria-live="polite"></pre>
+    </section>
+  </main>
+
+  <script src="/passkey.js"></script>
+</body>
+</html>

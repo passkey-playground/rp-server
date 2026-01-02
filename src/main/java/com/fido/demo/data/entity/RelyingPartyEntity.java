@@ -2,24 +2,28 @@ package com.fido.demo.data.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
 import java.sql.Time;
 import java.util.List;
+
 
 @Entity
 @Table(name = "RELYING_PARTIES")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RelyingPartyEntity {
 
     @Id
     @Column(name = "id")
-    private int id;
+    private BigInteger id;
 
-    @Column(name = "rp_id")
+    @Column(name = "external_id", unique = true)
     private String rpId;
 
     @Column(name = "name")
@@ -42,5 +46,6 @@ public class RelyingPartyEntity {
 
     @JoinColumn(name = "rp_id")
     @OneToMany(fetch = FetchType.LAZY)
-    private List<RelyingPartyConfigEntity> configs;
+    private List<RPConfigEntity> configs;
+
 }

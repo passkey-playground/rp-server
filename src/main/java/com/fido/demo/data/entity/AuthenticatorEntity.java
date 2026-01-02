@@ -1,23 +1,33 @@
 package com.fido.demo.data.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
-import java.sql.Time;
 import java.util.UUID;
+import java.util.List;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 
 @Entity
 @Table(name = "AUTHENTICATORS")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthenticatorEntity {
 
     @Id
     @Column(name = "id")
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "authenticator_sequence_generator")
+    @SequenceGenerator(name = "authenticator_sequence_generator", sequenceName = "authenticators_id_seq", allocationSize = 1)
+    private BigInteger id;
 
     @Column(name = "aaguid")
     private UUID aaguid;
@@ -29,7 +39,7 @@ public class AuthenticatorEntity {
     private String deviceType;
 
     @Column(name = "transports")
-    private String transports;
+    private List<String> transports;
 
     @Column(name = "manufacturer")
     private String manufacturer;
@@ -41,8 +51,16 @@ public class AuthenticatorEntity {
     private String firmwareVersion;
 
     @Column(name = "created_at")
-    private Time createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Time updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+//     @JoinColumn(name = "credential_id", nullable = false)
+//     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//     private List<CredentialEntityOld> credentials;
+
+
 }

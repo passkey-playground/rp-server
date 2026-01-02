@@ -1,0 +1,21 @@
+app = "demo-postgres"
+primary_region = "ord"
+
+[build]
+image = "postgres:15-alpine"
+
+[[mounts]]
+source = "pg_data"
+destination = "/data"
+
+[[services]]
+protocol = "tcp"
+internal_port = 5432
+
+[[services.ports]]
+port = 5432
+
+[[vm]]
+memory = "1gb"
+cpu_kind = "shared"
+cpus = 1

@@ -1,43 +1,62 @@
 package com.fido.demo.data.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Time;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Entity
-@Table(name = "CREDENTIALS")
+@Table(name = "CREDENTIALS2")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CredentialEntity {
 
     @Id
     @Column(name = "id")
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cred_sequence_generator")
+    @SequenceGenerator(name = "cred_sequence_generator", sequenceName = "credentials_id_seq", allocationSize = 1)
+    private BigInteger id;
+
+    @Column(name = "username", nullable = false)
+    private String username;
 
     @Column(name = "user_id")
-    private int userId;
+    private BigInteger userId;
 
     @Column(name = "rp_id")
-    private int rpId;
+    private BigInteger rpId;
 
-    @Column(name = "credential_id")
-    private byte[] credentialId;
+    @Column(name = "external_id")
+    private String externalId;
 
-    @Column(name = "public_key")
-    private byte[] publicKey;
+    @Column(name = "external_id_raw")
+    private String externalIdRaw;
 
-    @Column(name = "sign_count")
-    private long sign_count;
 
-    @Column(name = "attestation_format")
-    private String attestationFormat;
+    @Column(name = "authenticator_data")
+    private byte[] authenticatorData;
+
+    @Column(name = "attestation_statement")
+    private byte[] attestationStatement;
+
+    @Column(name = "client_extensions")
+    private byte[] clientExtensions;
+
+    @Column(name = "collected_client_data")
+    private byte[] collectedClientData;
+
+    @Column(name = "transports")
+    private String transports;
 
     @JoinColumn(name = "credential_id")
     @OneToMany(fetch = FetchType.LAZY)
@@ -48,8 +67,11 @@ public class CredentialEntity {
     private AuthenticatorEntity authenticator;
 
     @Column(name = "created_at")
-    private Time createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Time updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

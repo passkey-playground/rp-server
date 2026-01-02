@@ -1,29 +1,34 @@
 package com.fido.demo.data.entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Time;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "CREDENTIAL_CONFIGS")
-@Data // Generates getters, setters, toString, etc. (Requires Lombok)
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CredentialConfigEntity {
 
     @Id
     @Column(name = "id")
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cred_sequence_generator")
+    @SequenceGenerator(name = "cred_sequence_generator", sequenceName = "credential_configs_id_seq", allocationSize = 1)
+    private BigInteger id;
 
-    @Column(name = "credential_id")
-    private int credentialId;
+    @JoinColumn(name = "credential_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private CredentialEntityOld credentialEntity;
 
     @Column(name = "setting_key")
     private String settingKey;
@@ -32,8 +37,11 @@ public class CredentialConfigEntity {
     private String settingValue;
 
     @Column(name = "created_at")
-    private Time createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private Time updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }
